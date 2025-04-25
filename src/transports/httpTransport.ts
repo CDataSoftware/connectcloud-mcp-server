@@ -1,8 +1,8 @@
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import express from "express";
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import express from 'express';
 import { log, error, info, debug } from '../utils/logger';
 import { server } from '../server/mcpServer';
-import { createDirectHandler } from "../http/routes";
+import { createDirectHandler } from '../http/routes';
 
 /**
  * Set up an HTTP server with StreamableHTTP transport for MCP
@@ -18,13 +18,13 @@ export async function setupHttpTransport(port: number, host: string) {
   app.use((err: any, req: any, res: any, next: any) => {
     if (err instanceof SyntaxError && 'body' in err) {
       error(`JSON parsing error: ${err.message}`);
-      return res.status(400).json({ 
+      return res.status(400).json({
         jsonrpc: '2.0',
-        error: { 
-          code: -32700, 
-          message: 'Parse error: Invalid JSON' 
+        error: {
+          code: -32700,
+          message: 'Parse error: Invalid JSON',
         },
-        id: null
+        id: null,
       });
     }
     next();
@@ -42,11 +42,11 @@ export async function setupHttpTransport(port: number, host: string) {
   // Serve manifest file for MCP discovery
   app.get('/.well-known/mc/manifest.json', (req, res) => {
     res.json({
-      name: "CData Connect Cloud",
-      version: "1.0.0",
-      transport: "streamable-http",
-      endpoint: "/mcp",
-      auth: "none"
+      name: 'CData Connect Cloud',
+      version: '1.0.0',
+      transport: 'streamable-http',
+      endpoint: '/mcp',
+      auth: 'none',
     });
   });
 
@@ -57,20 +57,20 @@ export async function setupHttpTransport(port: number, host: string) {
   const transports: Record<string, StreamableHTTPServerTransport> = {};
 
   // Handle POST requests for client-to-server communication with MCP
-  app.post('/mcp', async (req, res, next) => {
+  app.post('/mcp', async (req, res) => {
     try {
       log(`Received request to /mcp: ${JSON.stringify(req.body)}`);
-      
+
       // Store request ID for downstream handlers
       if (req.body && req.body.id) {
         global.currentRequestId = req.body.id;
         log(`Set current request ID to: ${global.currentRequestId}`);
       }
-      
+
       // Check for existing session ID
       const sessionId = req.headers['mcp-session-id'] as string | undefined;
       log(`Session ID from request: ${sessionId}`);
-      
+
       let transport: StreamableHTTPServerTransport;
 
       if (sessionId && transports[sessionId]) {
@@ -86,11 +86,11 @@ export async function setupHttpTransport(port: number, host: string) {
             log(`Generated new session ID: ${id}`);
             return id;
           },
-          onsessioninitialized: (newSessionId) => {
+          onsessioninitialized: newSessionId => {
             log(`Session initialized with ID: ${newSessionId}`);
             // Store the transport by session ID
             transports[newSessionId] = transport;
-          }
+          },
         });
 
         // Clean up transport when closed
@@ -112,9 +112,9 @@ export async function setupHttpTransport(port: number, host: string) {
             jsonrpc: '2.0',
             error: {
               code: -32000,
-              message: `Failed to initialize transport: ${err.message}`
+              message: `Failed to initialize transport: ${err.message}`,
             },
-            id: req.body?.id || null
+            id: req.body?.id || null,
           });
           return;
         }
@@ -127,7 +127,7 @@ export async function setupHttpTransport(port: number, host: string) {
             code: -32000,
             message: 'Bad Request: Invalid session ID provided',
           },
-          id: req.body?.id || null
+          id: req.body?.id || null,
         });
         return;
       }
@@ -142,9 +142,9 @@ export async function setupHttpTransport(port: number, host: string) {
         jsonrpc: '2.0',
         error: {
           code: -32603,
-          message: `Internal server error: ${err.message}`
+          message: `Internal server error: ${err.message}`,
         },
-        id: req.body?.id || null
+        id: req.body?.id || null,
       });
     }
   });
@@ -156,7 +156,7 @@ export async function setupHttpTransport(port: number, host: string) {
       res.status(400).send('Invalid or missing session ID');
       return;
     }
-    
+
     const transport = transports[sessionId];
     await transport.handleRequest(req, res);
   };

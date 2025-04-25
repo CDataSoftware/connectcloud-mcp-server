@@ -1,4 +1,4 @@
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { debug, error, info } from '../utils/logger';
 import { server } from '../server/mcpServer';
 
@@ -6,14 +6,14 @@ import { server } from '../server/mcpServer';
  * Initialize and connect the stdio transport to the MCP server
  */
 export async function setupStdioTransport() {
-  error("Starting MCP server with stdio transport");
-  
+  error('Starting MCP server with stdio transport');
+
   const transport = new StdioServerTransport();
-  
+
   // Add debug event listeners
-  process.stdin.on('data', (data) => {
+  process.stdin.on('data', data => {
     debug(`Received stdin data: ${data.toString().trim()}`);
-    
+
     // Try to parse the incoming data to extract the request ID
     try {
       const parsed = JSON.parse(data.toString().trim());
@@ -22,14 +22,15 @@ export async function setupStdioTransport() {
         debug(`Set currentRequestId to ${global.currentRequestId}`);
       }
     } catch (err) {
-      debug("Failed to parse stdin data as JSON");
+      const error = err instanceof Error ? err : new Error(String(err));
+      debug(`Failed to parse stdin data as JSON: ${error.message}`);
     }
   });
-  
-  process.stdin.on('error', (err) => {
+
+  process.stdin.on('error', err => {
     error(`stdin error: ${err.message}`);
   });
-  
+
   try {
     await server.connect(transport);
     info(`MCP Server connected using stdio transport`);

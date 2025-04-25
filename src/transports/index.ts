@@ -17,9 +17,9 @@ export async function setupTransport() {
 
   // If using as a CLI tool with stdio
   if (process.env.TRANSPORT === 'stdio') {
-    info("Using stdio transport as specified in environment");
+    info('Using stdio transport as specified in environment');
     return setupStdioTransport();
-  } 
+  }
   // Default: Set up an Express server with StreamableHTTP transport
   else {
     info(`Using HTTP transport on ${host}:${port}`);

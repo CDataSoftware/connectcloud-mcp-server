@@ -20,7 +20,7 @@ setupTransport()
   .then(() => {
     log('MCP Server started successfully');
   })
-  .catch((err) => {
+  .catch(err => {
     error(`Failed to start MCP server: ${err}`);
     process.exit(1);
   });

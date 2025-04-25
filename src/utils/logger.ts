@@ -26,29 +26,33 @@ const logger = winston.createLogger({
   levels,
   format: winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
-    winston.format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`)
+    winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`),
   ),
-  transports: LOG_ENABLED ? [
-    // Write logs to file when logging is enabled
-    new winston.transports.File({ 
-      filename: path.join(logDir, 'error.log'), 
-      level: 'error' 
-    }),
-    new winston.transports.File({ 
-      filename: path.join(logDir, 'combined.log')
-    })
-  ] : [],
+  transports: LOG_ENABLED
+    ? [
+        // Write logs to file when logging is enabled
+        new winston.transports.File({
+          filename: path.join(logDir, 'error.log'),
+          level: 'error',
+        }),
+        new winston.transports.File({
+          filename: path.join(logDir, 'combined.log'),
+        }),
+      ]
+    : [],
   silent: !LOG_ENABLED, // Disable logging when LOG_ENABLED is false
 });
 
 // Add console transport for development environment
 if (process.env.NODE_ENV !== 'production' && LOG_ENABLED) {
-  logger.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`)
-    ),
-  }));
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`),
+      ),
+    }),
+  );
 }
 
 // Export wrapper functions to match console.log and console.error
