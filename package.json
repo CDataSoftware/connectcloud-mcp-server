@@ -1,0 +1,38 @@
+{
+  "name": "connectcloud-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Connect Cloud API Integration",
+  "keywords": [
+    "modelcontextprotocol",
+    "mcp",
+    "cdata"
+  ],
+  "homepage": "https://modelcontextprotocol.io",
+  "author": "Model Context Protocol",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "build-start": "npm run build && npm run start",
+    "dev": "ts-node src/index.ts",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.10.2",
+    "axios": "^1.8.4",
+    "dotenv": "^16.5.0",
+    "winston": "^3.17.0",
+    "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.14.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,20 @@
+# Build stage
+FROM node:22.12-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npx tsc
+
+# Release stage
+FROM node:22.12-alpine
+WORKDIR /app
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+RUN npm install --production
+
+# Set the environment variable to use stdio transport by default
+ENV TRANSPORT=stdio
+
+CMD ["node", "dist/index.js"]
+EXPOSE 3000
