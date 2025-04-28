@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { queryData, batchData, execData } from '../tools/queryData';
-import { getQueryLogs, downloadQueryLog } from '../tools/queryLogs';
+import { queryData, batchData, execData } from '../tools/query';
+import { getQueryLogs, downloadQueryLog } from '../tools/logs/';
 import {
   getCatalogs,
   getColumns,

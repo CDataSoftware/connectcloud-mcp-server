@@ -1,8 +1,8 @@
 import express from 'express';
 import { log, error } from '../utils/logger';
-import { queryData, batchData, execData } from '../tools/queryData';
-import { getQueryLogs, downloadQueryLog } from '../tools/queryLogs';
-import { getCatalogs, getColumns, getSchemas, getTables } from '../tools/queryMetadata';
+import { queryData, batchData, execData } from '../tools/query';
+import { getQueryLogs, downloadQueryLog } from '../tools/logs/';
+import { getCatalogs, getColumns, getSchemas, getTables } from '../tools/metadata';
 
 /**
  * Create the handler for direct JSON-RPC requests

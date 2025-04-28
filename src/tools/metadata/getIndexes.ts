@@ -1,4 +1,4 @@
-import { CDATA_API_URL, log } from './config';
+import { CDATA_API_URL, log } from '../config';
 
 async function getIndexes(
   catalogName?: string,

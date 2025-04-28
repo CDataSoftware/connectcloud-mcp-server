@@ -1,27 +1,24 @@
 import { CDATA_API_URL, log } from '../config';
 
-async function getProcedures(catalogName?: string, schemaName?: string, procedureName?: string) {
+async function execData(
+  procedure: string,
+  defaultSchema?: string,
+  parameters?: Record<string, { dataType: number; direction?: number; value?: any }>,
+) {
   try {
-    let url = `${CDATA_API_URL}/procedures`;
-    const params = new URLSearchParams();
-
-    if (catalogName) params.append('catalogName', catalogName);
-    if (schemaName) params.append('schemaName', schemaName);
-    if (procedureName) params.append('procedureName', procedureName);
-
-    const queryString = params.toString();
-    if (queryString) {
-      url += `?${queryString}`;
-    }
-
-    const response = await fetch(url, {
-      method: 'GET',
+    const response = await fetch(`${CDATA_API_URL}/exec`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization:
           'Basic ' +
           Buffer.from(`${process.env.CDATA_USERNAME}:${process.env.CDATA_PAT}`).toString('base64'),
       },
+      body: JSON.stringify({
+        procedure,
+        defaultSchema,
+        parameters,
+      }),
     });
 
     if (!response.ok) {
@@ -30,12 +27,12 @@ async function getProcedures(catalogName?: string, schemaName?: string, procedur
 
     const data = await response.json();
     log({
-      message: 'Procedures information retrieved successfully',
+      message: 'Stored procedure executed successfully',
       timestamp: new Date().toISOString(),
       details: {
-        catalogName: catalogName || 'all',
-        schemaName: schemaName || 'all',
-        procedureName: procedureName || 'all',
+        procedure,
+        defaultSchema,
+        parameterCount: parameters ? Object.keys(parameters).length : 0,
       },
     });
 
@@ -47,7 +44,7 @@ async function getProcedures(catalogName?: string, schemaName?: string, procedur
   } catch (error: any) {
     error({
       level: 'error',
-      message: 'Error fetching procedures',
+      message: 'Error fetching exec data',
       timestamp: new Date().toISOString(),
       error: {
         name: error.name,
@@ -55,9 +52,9 @@ async function getProcedures(catalogName?: string, schemaName?: string, procedur
         stack: error.stack,
       },
       details: {
-        catalogName: catalogName || 'all',
-        schemaName: schemaName || 'all',
-        procedureName: procedureName || 'all',
+        procedure,
+        defaultSchema,
+        parameterCount: parameters ? Object.keys(parameters).length : 0,
       },
     });
 
@@ -65,7 +62,7 @@ async function getProcedures(catalogName?: string, schemaName?: string, procedur
       jsonrpc: '2.0',
       error: {
         code: -32000,
-        message: error.message || 'Unknown error fetching procedures',
+        message: error.message || 'Unknown error during stored procedure execution',
         data: {
           name: error.name,
           stack: error.stack,
@@ -76,4 +73,4 @@ async function getProcedures(catalogName?: string, schemaName?: string, procedur
   }
 }
 
-export { getProcedures };
+export { execData };
