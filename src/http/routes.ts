@@ -1,7 +1,7 @@
 import express from 'express';
 import { log, error } from '../utils/logger';
 import { queryData, batchData, execData } from '../tools/query';
-import { getQueryLogs, downloadQueryLog } from '../tools/logs/';
+import { getQueryLogs, downloadQueryLog } from '../tools/querylogs';
 import { getCatalogs, getColumns, getSchemas, getTables } from '../tools/metadata';
 
 /**
