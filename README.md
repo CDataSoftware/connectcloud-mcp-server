@@ -1,4 +1,3 @@
-
 # 🧠 CData Connect Cloud MCP Server
 
 [![Node.js Version](https://img.shields.io/badge/Node.js-18%2B-blue.svg)](https://nodejs.org/)
@@ -92,14 +91,18 @@ npm start
 
 ### 🔹 Metadata Operations
 
-| Tool                   | Description                         |
-|------------------------|-------------------------------------|
-| `getCatalogs`          | Retrieve available catalogs         |
-| `getSchemas`           | List schemas in a catalog           |
-| `getTables`            | List tables in a schema             |
-| `getColumns`           | Get column metadata for a table     |
-| `getProcedures`        | List available procedures           |
-| `getProcedureParameters` | Get procedure input/output params |
+| Tool                   | Description                                 |
+|------------------------|---------------------------------------------|
+| `getCatalogs`          | Retrieve available catalogs                 |
+| `getSchemas`           | List schemas in a catalog                   |
+| `getTables`            | List tables in a schema                     |
+| `getColumns`           | Get column metadata for a table             |
+| `getPrimaryKeys`       | Retrieve primary keys for tables            |
+| `getIndexes`           | Get index information for tables            |
+| `getImportedKeys`      | Retrieve foreign key columns that reference tables |
+| `getExportedKeys`      | Retrieve foreign key columns referenced from tables |
+| `getProcedures`        | List available procedures                   |
+| `getProcedureParameters` | Get procedure input/output params         |
 
 ### 🔹 Log Operations
 

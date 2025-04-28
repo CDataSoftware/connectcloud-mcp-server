@@ -35,7 +35,6 @@ export function registerTools(server: McpServer) {
     async ({ query, defaultSchema, schemaOnly, parameters }) => {
       try {
         const response = await queryData(query, defaultSchema, schemaOnly, parameters);
-        // Extract the actual result from the JSON-RPC response
         if (response.error) {
           return {
             content: [{ type: 'text', text: `Error: ${response.error.message}` }],
@@ -214,6 +213,221 @@ export function registerTools(server: McpServer) {
     },
   );
 
+  // Get Columns tool
+  server.tool(
+    'getColumns',
+    'Retrieve a list of available database columns from CData Connect Cloud for a specific catalog, schema, and table',
+    {
+      catalogName: z.string().optional().describe('Optional catalog name to filter columns by'),
+      schemaName: z.string().optional().describe('Optional schema name to filter columns by'),
+      tableName: z.string().optional().describe('Optional table name to filter columns by'),
+      columnName: z.string().optional().describe('Optional column name to filter by'),
+    },
+    async ({ catalogName, schemaName, tableName, columnName }) => {
+      try {
+        const response = await getColumns(catalogName, schemaName, tableName, columnName);
+        if (response.error) {
+          return {
+            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
+            isError: true,
+          };
+        }
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: `Error: ${error.message}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // Get Exported Keys tool
+  server.tool(
+    'getExportedKeys',
+    'Retrieve a list of foreign key relationships from CData Connect Cloud for a specific catalog, schema, and table',
+    {
+      catalogName: z.string().optional().describe('Optional catalog name to filter keys by'),
+      schemaName: z.string().optional().describe('Optional schema name to filter keys by'),
+      tableName: z.string().optional().describe('Optional table name to filter by'),
+    },
+    async ({ catalogName, schemaName, tableName }) => {
+      try {
+        const response = await getColumns(catalogName, schemaName, tableName);
+        if (response.error) {
+          return {
+            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
+            isError: true,
+          };
+        }
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: `Error: ${error.message}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // Get Imported Keys tool
+  server.tool(
+    'getImportedKeys',
+    'Retrieve a list of foreign key relationships from CData Connect Cloud for a specific catalog, schema, and table',
+    {
+      catalogName: z.string().optional().describe('Optional catalog name to filter keys by'),
+      schemaName: z.string().optional().describe('Optional schema name to filter keys by'),
+      tableName: z.string().optional().describe('Optional table name to filter by'),
+    },
+    async ({ catalogName, schemaName, tableName }) => {
+      try {
+        const response = await getColumns(catalogName, schemaName, tableName);
+        if (response.error) {
+          return {
+            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
+            isError: true,
+          };
+        }
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: `Error: ${error.message}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // Get Indexes tool
+  server.tool(
+    'getIndexes',
+    'Retrieve a list of indexes from CData Connect Cloud for a specific catalog, schema, and table',
+    {
+      catalogName: z.string().optional().describe('Optional catalog name to filter indexes by'),
+      schemaName: z.string().optional().describe('Optional schema name to filter indexes by'),
+      tableName: z.string().optional().describe('Optional table name to filter by'),
+    },
+    async ({ catalogName, schemaName, tableName }) => {
+      try {
+        const response = await getColumns(catalogName, schemaName, tableName);
+        if (response.error) {
+          return {
+            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
+            isError: true,
+          };
+        }
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: `Error: ${error.message}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // Get Primary Keys tool
+  server.tool(
+    'getPrimaryKeys',
+    'Retrieve a list of primary keys from CData Connect Cloud for a specific catalog, schema, and table',
+    {
+      catalogName: z.string().optional().describe('Optional catalog name to filter keys by'),
+      schemaName: z.string().optional().describe('Optional schema name to filter keys by'),
+      tableName: z.string().optional().describe('Optional table name to filter by'),
+    },
+    async ({ catalogName, schemaName, tableName }) => {
+      try {
+        const response = await getColumns(catalogName, schemaName, tableName);
+        if (response.error) {
+          return {
+            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
+            isError: true,
+          };
+        }
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: `Error: ${error.message}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // Get Procedure Parameters tool
+  server.tool(
+    'getProcedureParameters',
+    'Retrieve a list of stored procedure parameters from CData Connect Cloud for a specific catalog, schema, and procedure',
+    {
+      catalogName: z.string().optional().describe('Optional catalog name to filter parameters by'),
+      schemaName: z.string().optional().describe('Optional schema name to filter parameters by'),
+      procedureName: z
+        .string()
+        .optional()
+        .describe('Optional procedure name to filter parameters by'),
+      parameterName: z.string().optional().describe('Optional parameter name to filter by'),
+    },
+    async ({ catalogName, schemaName, procedureName, parameterName }) => {
+      try {
+        const response = await getColumns(catalogName, schemaName, procedureName, parameterName);
+        if (response.error) {
+          return {
+            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
+            isError: true,
+          };
+        }
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: `Error: ${error.message}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // Get Procdures tool
+  server.tool(
+    'getProcedures',
+    'Retrieve a list of stored procedures from CData Connect Cloud for a specific catalog and schema',
+    {
+      catalogName: z.string().optional().describe('Optional catalog name to filter procedures by'),
+      schemaName: z.string().optional().describe('Optional schema name to filter procedures by'),
+      procedureName: z.string().optional().describe('Optional procedure name to filter by'),
+    },
+    async ({ catalogName, schemaName, procedureName }) => {
+      try {
+        const response = await getColumns(catalogName, schemaName, procedureName);
+        if (response.error) {
+          return {
+            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
+            isError: true,
+          };
+        }
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: `Error: ${error.message}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
   // Get Schemas tool
   server.tool(
     'getSchemas',
@@ -254,101 +468,6 @@ export function registerTools(server: McpServer) {
     async ({ catalogName, schemaName, tableName }) => {
       try {
         const response = await getTables(catalogName, schemaName, tableName);
-        if (response.error) {
-          return {
-            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
-            isError: true,
-          };
-        }
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
-        };
-      } catch (error: any) {
-        return {
-          content: [{ type: 'text', text: `Error: ${error.message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
-
-  // Get Columns tool
-  server.tool(
-    'getColumns',
-    'Retrieve a list of available database columns from CData Connect Cloud for a specific catalog, schema, and table',
-    {
-      catalogName: z.string().optional().describe('Optional catalog name to filter columns by'),
-      schemaName: z.string().optional().describe('Optional schema name to filter columns by'),
-      tableName: z.string().optional().describe('Optional table name to filter columns by'),
-      columnName: z.string().optional().describe('Optional column name to filter by'),
-    },
-    async ({ catalogName, schemaName, tableName, columnName }) => {
-      try {
-        const response = await getColumns(catalogName, schemaName, tableName, columnName);
-        if (response.error) {
-          return {
-            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
-            isError: true,
-          };
-        }
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
-        };
-      } catch (error: any) {
-        return {
-          content: [{ type: 'text', text: `Error: ${error.message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
-
-  // Get Procedures tool
-  server.tool(
-    'getProcedures',
-    'Retrieve a list of available stored procedures from CData Connect Cloud for a specific catalog and schema',
-    {
-      catalogName: z.string().optional().describe('Optional catalog name to filter procedures by'),
-      schemaName: z.string().optional().describe('Optional schema name to filter procedures by'),
-      procedureName: z.string().optional().describe('Optional procedure name to filter by'),
-    },
-    async ({ catalogName, schemaName, procedureName }) => {
-      try {
-        const response = await getTables(catalogName, schemaName, procedureName);
-        if (response.error) {
-          return {
-            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
-            isError: true,
-          };
-        }
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
-        };
-      } catch (error: any) {
-        return {
-          content: [{ type: 'text', text: `Error: ${error.message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
-
-  // Get Procedure Parameters tool
-  server.tool(
-    'getProcedureParameters',
-    'Retrieve a list of available stored procedure parameters from CData Connect Cloud for a specific catalog, schema, and procedure',
-    {
-      catalogName: z.string().optional().describe('Optional catalog name to filter parameters by'),
-      schemaName: z.string().optional().describe('Optional schema name to filter parameters by'),
-      procedureName: z
-        .string()
-        .optional()
-        .describe('Optional procedure name to filter parameters by'),
-      parameterName: z.string().optional().describe('Optional parameter name to filter by'),
-    },
-    async ({ catalogName, schemaName, procedureName, parameterName }) => {
-      try {
-        const response = await getColumns(catalogName, schemaName, procedureName, parameterName);
         if (response.error) {
           return {
             content: [{ type: 'text', text: `Error: ${response.error.message}` }],
