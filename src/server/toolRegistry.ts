@@ -2,7 +2,18 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { queryData, batchData, execData } from '../tools/queryData';
 import { getQueryLogs, downloadQueryLog } from '../tools/queryLogs';
-import { getCatalogs, getColumns, getSchemas, getTables } from '../tools/queryMetadata';
+import {
+  getCatalogs,
+  getColumns,
+  getExportedKeys,
+  getImportedKeys,
+  getIndexes,
+  getPrimaryKeys,
+  getProcedures,
+  getProcedureParameters,
+  getSchemas,
+  getTables,
+} from '../tools/metadata';
 
 /**
  * Register all tools with the MCP server
@@ -255,7 +266,7 @@ export function registerTools(server: McpServer) {
     },
     async ({ catalogName, schemaName, tableName }) => {
       try {
-        const response = await getColumns(catalogName, schemaName, tableName);
+        const response = await getExportedKeys(catalogName, schemaName, tableName);
         if (response.error) {
           return {
             content: [{ type: 'text', text: `Error: ${response.error.message}` }],
@@ -285,7 +296,7 @@ export function registerTools(server: McpServer) {
     },
     async ({ catalogName, schemaName, tableName }) => {
       try {
-        const response = await getColumns(catalogName, schemaName, tableName);
+        const response = await getImportedKeys(catalogName, schemaName, tableName);
         if (response.error) {
           return {
             content: [{ type: 'text', text: `Error: ${response.error.message}` }],
@@ -315,7 +326,7 @@ export function registerTools(server: McpServer) {
     },
     async ({ catalogName, schemaName, tableName }) => {
       try {
-        const response = await getColumns(catalogName, schemaName, tableName);
+        const response = await getIndexes(catalogName, schemaName, tableName);
         if (response.error) {
           return {
             content: [{ type: 'text', text: `Error: ${response.error.message}` }],
@@ -345,7 +356,7 @@ export function registerTools(server: McpServer) {
     },
     async ({ catalogName, schemaName, tableName }) => {
       try {
-        const response = await getColumns(catalogName, schemaName, tableName);
+        const response = await getPrimaryKeys(catalogName, schemaName, tableName);
         if (response.error) {
           return {
             content: [{ type: 'text', text: `Error: ${response.error.message}` }],
@@ -379,7 +390,12 @@ export function registerTools(server: McpServer) {
     },
     async ({ catalogName, schemaName, procedureName, parameterName }) => {
       try {
-        const response = await getColumns(catalogName, schemaName, procedureName, parameterName);
+        const response = await getProcedureParameters(
+          catalogName,
+          schemaName,
+          procedureName,
+          parameterName,
+        );
         if (response.error) {
           return {
             content: [{ type: 'text', text: `Error: ${response.error.message}` }],
@@ -409,7 +425,7 @@ export function registerTools(server: McpServer) {
     },
     async ({ catalogName, schemaName, procedureName }) => {
       try {
-        const response = await getColumns(catalogName, schemaName, procedureName);
+        const response = await getProcedures(catalogName, schemaName, procedureName);
         if (response.error) {
           return {
             content: [{ type: 'text', text: `Error: ${response.error.message}` }],
