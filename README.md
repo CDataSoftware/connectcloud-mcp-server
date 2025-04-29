@@ -146,9 +146,19 @@ docker build -t mcp/connectcloud:latest -f Dockerfile .
 
 ## 🧩 Claude Desktop Integration
 
-Add this configuration to your `claude_desktop_config.json` under the `mcpServers` section:
+### 🚀 One-Click Installation
 
-### 🔹 From Docker
+Click the link below to automatically install this MCP server in Claude Desktop:
+
+[Install CData Connect Cloud MCP Server in Claude Desktop](claude://install?url=https://raw.githubusercontent.com/cdatasoftware/connectcloud-mcp-server/main/mcp.json)
+
+You'll still need to configure your credentials after installation.
+
+### 🔹 Manual Configuration
+
+Add or edit this configuration to your `claude_desktop_config.json` under the `mcpServers` section:
+
+#### 🔹 From Docker
 
 ```json
 {
@@ -173,7 +183,7 @@ Add this configuration to your `claude_desktop_config.json` under the `mcpServer
 }
 ```
 
-### 🔹 From Source
+#### 🔹 From Source
 
 ```json
 {
@@ -195,5 +205,3 @@ Add this configuration to your `claude_desktop_config.json` under the `mcpServer
 ## 📄 License
 
 This project is licensed under the [MIT License](./LICENSE).
-
----

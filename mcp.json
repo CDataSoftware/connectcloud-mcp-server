@@ -1,0 +1,32 @@
+{
+  "name": "CData Connect Cloud",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for CData Connect Cloud integration",
+  "author": "CData Software",
+  "license": "MIT",
+  "capabilities": {
+    "prompts": true,
+    "tools": true
+  },
+  "tools": [
+    "queryData",
+    "batchData",
+    "execData",
+    "getQueryLogs",
+    "downloadQueryLog",
+    "getCatalogs",
+    "getSchemas",
+    "getTables",
+    "getColumns",
+    "getProcedures",
+    "getProcedureParameters",
+    "getExportedKeys",
+    "getImportedKeys",
+    "getIndexes",
+    "getPrimaryKeys"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cdatasoftware/connectcloud-mcp-server"
+  }
+}
