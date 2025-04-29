@@ -201,7 +201,7 @@ export function registerTools(server: McpServer) {
   // Get Catalogs tool
   server.tool(
     'getCatalogs',
-    'Retrieve a list of available data catalogs or connections from CData Connect Cloud',
+    'Retrieve a list of available connections from CData Connect Cloud.  The connection names should be used as catalog names in other tools and in any queries to CData Connect Cloud. Use the `getSchemas` tool to get a list of available schemas for a specific catalog.',
     {},
     async () => {
       try {
@@ -447,7 +447,7 @@ export function registerTools(server: McpServer) {
   // Get Schemas tool
   server.tool(
     'getSchemas',
-    'Retrieve a list of available database schemas from CData Connect Cloud for a specific catalog',
+    'Retrieve a list of available database schemas from CData Connect Cloud for a specific catalog.  Use the `getTables` tool to get a list of available tables for a specific catalog and schema.',
     {
       catalogName: z.string().optional().describe('Optional catalog name to filter schemas by'),
     },
@@ -475,7 +475,7 @@ export function registerTools(server: McpServer) {
   // Get Tables tool
   server.tool(
     'getTables',
-    'Retrieve a list of available database tables from CData Connect Cloud for a specific catalog and schema',
+    'Retrieve a list of available database tables from CData Connect Cloud for a specific catalog and schema.  Use the `getColumns` tool to get a list of available columns for a specific table.',
     {
       catalogName: z.string().optional().describe('Optional catalog name to filter tables by'),
       schemaName: z.string().optional().describe('Optional schema name to filter tables by'),
