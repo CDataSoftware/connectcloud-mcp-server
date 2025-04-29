@@ -180,7 +180,7 @@ Add this configuration to your `claude_desktop_config.json` under the `mcpServer
   "mcpServers": {
     "connect-cloud": {
       "command": "npm",
-      "args": ["run", "build-start", "--prefix", "C:\\path\\to\\your\\directory"],
+      "args": ["run", "build-start", "--silent", "--prefix", "C:\\path\\to\\your\\directory"],
       "env": {
         "CDATA_USERNAME": "<your-cdata-username>",
         "CDATA_PAT": "<your-cdata-personal-access-token>"
