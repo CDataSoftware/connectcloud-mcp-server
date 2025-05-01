@@ -86,7 +86,6 @@ npm start
 | Tool       | Description                                         |
 |------------|-----------------------------------------------------|
 | `queryData`  | Execute SQL queries                                 |
-| `batchData`  | Batch operations (INSERT, UPDATE, DELETE)           |
 | `execData`   | Execute stored procedures                           |
 
 ### 🔹 Metadata Operations
@@ -103,13 +102,6 @@ npm start
 | `getExportedKeys`      | Retrieve foreign key columns referenced from tables |
 | `getProcedures`        | List available procedures                   |
 | `getProcedureParameters` | Get procedure input/output params         |
-
-### 🔹 Log Operations
-
-| Tool              | Description                          |
-|-------------------|--------------------------------------|
-| `getQueryLogs`    | View history of executed queries     |
-| `downloadQueryLog`| Download logs for specific queries   |
 
 ---
 

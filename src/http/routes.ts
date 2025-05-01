@@ -1,7 +1,6 @@
 import express from 'express';
 import { log, error } from '../utils/logger';
-import { queryData, batchData, execData } from '../tools/query';
-import { getQueryLogs, downloadQueryLog } from '../tools/querylogs';
+import { queryData, execData } from '../tools/query';
 import { getCatalogs, getColumns, getSchemas, getTables } from '../tools/metadata';
 
 /**
@@ -60,17 +59,8 @@ export function createDirectHandler() {
                 params?.parameters,
               );
               break;
-            case 'batchData':
-              result = await batchData(params.query, params?.defaultSchema, params?.parameters);
-              break;
             case 'execData':
               result = await execData(params.procedure, params?.defaultSchema, params?.parameters);
-              break;
-            case 'getQueryLogs':
-              result = await getQueryLogs(params?.queryType, params.startTime, params.endTime);
-              break;
-            case 'downloadQueryLog':
-              result = await downloadQueryLog(params.queryId);
               break;
             default:
               throw new Error(`Method '${method}' not found`);

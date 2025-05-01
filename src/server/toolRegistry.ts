@@ -1,7 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { queryData, batchData, execData } from '../tools/query';
-import { getQueryLogs, downloadQueryLog } from '../tools/querylogs';
+import { queryData, execData } from '../tools/query';
 import {
   getCatalogs,
   getColumns,
@@ -64,44 +63,6 @@ export function registerTools(server: McpServer) {
     },
   );
 
-  // Batch Data tool
-  server.tool(
-    'batchData',
-    'Execute batch operations (INSERT, UPDATE, DELETE) against connected data sources',
-    {
-      query: z.string().describe('The batch INSERT, UPDATE, or DELETE statement to execute'),
-      defaultSchema: z
-        .string()
-        .optional()
-        .describe('Schema to use if tables are not prefixed with a schema name'),
-      parameters: z
-        .array(z.record(z.any()))
-        .optional()
-        .describe(
-          'An array of parameter set objects where each set represents parameters for a single item in the batch',
-        ),
-    },
-    async ({ query, defaultSchema, parameters }) => {
-      try {
-        const response = await batchData(query, defaultSchema, parameters);
-        if (response.error) {
-          return {
-            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
-            isError: true,
-          };
-        }
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
-        };
-      } catch (error: any) {
-        return {
-          content: [{ type: 'text', text: `Error: ${error.message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
-
   // Execute Data tool
   server.tool(
     'execData',
@@ -122,64 +83,6 @@ export function registerTools(server: McpServer) {
     async ({ procedure, defaultSchema, parameters }) => {
       try {
         const response = await execData(procedure, defaultSchema, parameters);
-        if (response.error) {
-          return {
-            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
-            isError: true,
-          };
-        }
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
-        };
-      } catch (error: any) {
-        return {
-          content: [{ type: 'text', text: `Error: ${error.message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
-
-  // Query Logs tool
-  server.tool(
-    'getQueryLogs',
-    'Retrieve execution logs for queries run against CData Connect Cloud',
-    {
-      queryType: z.number().optional().describe('Optional query type'),
-      startTime: z.string().describe('Timestamp in UTC'),
-      endTime: z.string().describe('Timestamp in UTC'),
-    },
-    async ({ queryType, startTime, endTime }) => {
-      try {
-        const response = await getQueryLogs(queryType, startTime, endTime);
-        if (response.error) {
-          return {
-            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
-            isError: true,
-          };
-        }
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
-        };
-      } catch (error: any) {
-        return {
-          content: [{ type: 'text', text: `Error: ${error.message}` }],
-          isError: true,
-        };
-      }
-    },
-  );
-
-  // Download Query Log tool
-  server.tool(
-    'downloadQueryLog',
-    'Download detailed logs for a specific query execution by ID',
-    {
-      queryId: z.string().describe('The query for which the logs need to be downloaded'),
-    },
-    async ({ queryId }) => {
-      try {
-        const response = await downloadQueryLog(queryId);
         if (response.error) {
           return {
             content: [{ type: 'text', text: `Error: ${response.error.message}` }],

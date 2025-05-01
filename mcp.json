@@ -5,7 +5,6 @@
   "author": "CData Software",
   "license": "MIT",
   "capabilities": {
-    "prompts": true,
     "tools": true
   },
   "tools": [
