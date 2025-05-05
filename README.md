@@ -4,6 +4,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Docker](https://img.shields.io/badge/docker-ready-blue)](https://www.docker.com/)
 [![CData Connect Cloud](https://img.shields.io/badge/CData-Connect%20Cloud-0072C6)](https://www.cdata.com/connect/)
+[![smithery badge](https://smithery.ai/badge/@CDataSoftware/connectcloud-mcp-server)](https://smithery.ai/server/@CDataSoftware/connectcloud-mcp-server)
 
 A **Model Context Protocol (MCP)** server for querying and managing data through [CData Connect Cloud](https://cloud.cdata.com/). This server enables AI agents to interact with data using SQL, metadata introspection, and procedure execution.
 
@@ -29,6 +30,15 @@ A **Model Context Protocol (MCP)** server for querying and managing data through
 
 ## ⚙️ Setup
 
+### Installing via Smithery
+
+To install CData Connect Cloud MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@CDataSoftware/connectcloud-mcp-server):
+
+```bash
+npx -y @smithery/cli install @CDataSoftware/connectcloud-mcp-server --client claude
+```
+
+### Manual Installation
 1. **Clone the repository**
 
    ```bash
