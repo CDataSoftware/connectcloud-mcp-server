@@ -1,19 +1,66 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 
-# Smithery.ai configuration
 startCommand:
   type: stdio
   configSchema:
     # JSON Schema defining the configuration options for the MCP.
-    {}
+    type: object
+    required:
+      - cdataUsername
+      - cdataPat
+    properties:
+      cdataUsername:
+        type: string
+        description: CData Connect Cloud username
+      cdataPat:
+        type: string
+        description: CData Personal Access Token
+      logEnabled:
+        type: boolean
+        default: false
+        description: Enable logging
+      logLevel:
+        type: string
+        default: info
+        description: Log level (e.g. info, debug, error)
+      cdataUrl:
+        type: string
+        default: https://cloud.cdata.com
+        description: CData Connect Cloud service URL
+      transport:
+        type: string
+        default: stdio
+        description: Transport protocol to use
+      port:
+        type: number
+        description: Port number if using HTTP/SSE transport
+      host:
+        type: string
+        default: 0.0.0.0
+        description: Host address if using HTTP/SSE transport
   commandFunction:
-    # A function that produces the CLI command to start the MCP on stdio.
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
     |-
     (config) => ({
-      "command": "node",
-      "args": [
-        "dist/index.js"
-      ],
-      "env": {
-        ...
+      command: 'node',
+      args: ['dist/index.js'],
+      env: {
+        TRANSPORT: config.transport,
+        CDATA_USERNAME: config.cdataUsername,
+        CDATA_PAT: config.cdataPat,
+        LOG_ENABLED: config.logEnabled?.toString(),
+        LOG_LEVEL: config.logLevel,
+        CDATA_URL: config.cdataUrl,
+        PORT: config.port?.toString(),
+        HOST: config.host
       }
     })
+  exampleConfig:
+    cdataUsername: demo_user
+    cdataPat: abcd1234efgh5678
+    logEnabled: false
+    logLevel: info
+    cdataUrl: https://cloud.cdata.com
+    transport: stdio
+    host: 0.0.0.0
+    port: 3000
