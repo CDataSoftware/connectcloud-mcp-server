@@ -1,6 +1,7 @@
 {
-  "name": "connectcloud-mcp-server",
+  "name": "@cdatasoftware/connectcloud-mcp-server",
   "version": "1.0.0",
+  "main": "dist/index.js",
   "description": "MCP Server for Connect Cloud API Integration",
   "keywords": [
     "modelcontextprotocol",
@@ -10,6 +11,12 @@
   "homepage": "https://modelcontextprotocol.io",
   "author": "Model Context Protocol",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "connectcloud-mcp-server": "dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
