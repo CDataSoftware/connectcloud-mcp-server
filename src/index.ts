@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { config } from 'dotenv';
 import { log, error } from './utils/logger';
 import { setupTransport } from './transports';

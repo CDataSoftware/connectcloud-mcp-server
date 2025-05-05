@@ -1,6 +1,6 @@
 {
   "name": "@cdatasoftware/connectcloud-mcp-server",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "description": "MCP Server for Connect Cloud API Integration",
   "keywords": [
