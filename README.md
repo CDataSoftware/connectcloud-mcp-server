@@ -193,6 +193,23 @@ Add or edit this configuration to your `claude_desktop_config.json` under the `m
 }
 ```
 
+#### Via Npx
+```json
+{
+  "mcpServers": {
+    "connect-cloud": {
+      "command": "npx",
+      "args": ["-y",
+      "@CDataSoftware/connectcloud-mcp-server"],
+      "env": {
+        "CDATA_USERNAME": "<your-cdata-username>",
+        "CDATA_PAT": "<your-cdata-personal-access-token>"
+      }
+    }
+  }
+}
+```
+
 ---
 
 ## 📄 License
