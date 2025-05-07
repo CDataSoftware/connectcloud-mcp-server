@@ -1,7 +1,7 @@
 {
   "name": "CData Connect Cloud",
-  "version": "1.0.0",
-  "description": "Model Context Protocol server for CData Connect Cloud integration",
+  "version": "1.0.3",
+  "description": "Model Context Protocol server for CData Connect Cloud",
   "author": "CData Software",
   "license": "MIT",
   "capabilities": {
@@ -9,10 +9,7 @@
   },
   "tools": [
     "queryData",
-    "batchData",
     "execData",
-    "getQueryLogs",
-    "downloadQueryLog",
     "getCatalogs",
     "getSchemas",
     "getTables",
