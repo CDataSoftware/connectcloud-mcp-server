@@ -13,10 +13,6 @@ global.currentRequestId = null;
 // Load environment variables from .env file
 config();
 
-// Force stdio transport for debugging
-// This is temporary to fix the initialization issue
-process.env.TRANSPORT = 'stdio';
-
 // Start the server with the appropriate transport
 setupTransport()
   .then(() => {

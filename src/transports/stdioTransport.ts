@@ -6,7 +6,7 @@ import { server } from '../server/mcpServer';
  * Initialize and connect the stdio transport to the MCP server
  */
 export async function setupStdioTransport() {
-  error('Starting MCP server with stdio transport');
+  info('Starting MCP server with stdio transport');
 
   const transport = new StdioServerTransport();
 

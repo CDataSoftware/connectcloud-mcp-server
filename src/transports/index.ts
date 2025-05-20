@@ -14,14 +14,13 @@ export async function setupTransport() {
   // Choose and set up the appropriate transport based on environment configuration
   const port = parseInt(process.env.PORT || '3000');
   const host = process.env.HOST || 'localhost';
+  const transportType = process.env.TRANSPORT_TYPE || 'stdio';
 
   // If using as a CLI tool with stdio
-  if (process.env.TRANSPORT === 'stdio') {
+  if (transportType === 'stdio') {
     info('Using stdio transport as specified in environment');
     return setupStdioTransport();
-  }
-  // Default: Set up an Express server with StreamableHTTP transport
-  else {
+  } else {
     info(`Using HTTP transport on ${host}:${port}`);
     return setupHttpTransport(port, host);
   }

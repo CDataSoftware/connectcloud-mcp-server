@@ -11,6 +11,8 @@ import { createDirectHandler } from '../http/routes';
  * @returns The Express app instance
  */
 export async function setupHttpTransport(port: number, host: string) {
+  info(`Starting MCP server with HTTP transport on ${host}:${port}`);
+
   const app = express();
   app.use(express.json());
 
@@ -43,7 +45,7 @@ export async function setupHttpTransport(port: number, host: string) {
   app.get('/.well-known/mc/manifest.json', (req, res) => {
     res.json({
       name: 'CData Connect Cloud',
-      version: '1.0.0',
+      version: '1.0.4',
       transport: 'streamable-http',
       endpoint: '/mcp',
       auth: 'none',

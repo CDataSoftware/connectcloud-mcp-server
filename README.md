@@ -16,7 +16,6 @@ A **Model Context Protocol (MCP)** server for querying and managing data through
 - 🔄 Perform batch operations (INSERT, UPDATE, DELETE)
 - ⚙️ Execute stored procedures
 - 📚 Access metadata (catalogs, schemas, tables, columns)
-- 📈 Retrieve and download query execution logs
 
 ---
 
