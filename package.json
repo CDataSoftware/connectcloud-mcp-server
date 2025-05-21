@@ -1,6 +1,6 @@
 {
   "name": "@cdatasoftware/connectcloud-mcp-server",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "dist/index.js",
   "description": "MCP Server for Connect Cloud API Integration",
   "keywords": [
@@ -23,6 +23,7 @@
     "start": "node dist/index.js",
     "build-start": "npm run build && npm run start",
     "dev": "ts-node src/index.ts",
+    "prepare": "npm run build",
     "watch": "tsc --watch",
     "clean": "rm -rf dist",
     "test": "echo \"Error: no test specified\" && exit 1",

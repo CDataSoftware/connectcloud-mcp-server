@@ -45,7 +45,7 @@ export async function setupHttpTransport(port: number, host: string) {
   app.get('/.well-known/mc/manifest.json', (req, res) => {
     res.json({
       name: 'CData Connect Cloud',
-      version: '1.0.4',
+      version: '1.0.5',
       transport: 'streamable-http',
       endpoint: '/mcp',
       auth: 'none',
