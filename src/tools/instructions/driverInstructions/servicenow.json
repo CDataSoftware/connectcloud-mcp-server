@@ -1,0 +1,59 @@
+{
+  "driverName": "servicenow",
+  "version": "1.0.0",
+  "instructions": {
+    "overview": "ServiceNow driver provides access to ServiceNow platform data through the REST API. It supports querying tables, records, and relationships with ServiceNow's query syntax and field conventions.",
+    "dataModel": {
+      "hierarchy": "Instance → Application → Table → Records → Fields. Core tables include incident, problem, change_request, cmdb_ci, sys_user. Most tables extend from sys_metadata.",
+      "keyTables": [
+        "incident",
+        "problem",
+        "change_request",
+        "cmdb_ci",
+        "sys_user",
+        "sys_user_group",
+        "task",
+        "kb_knowledge",
+        "cmdb_rel_ci",
+        "sys_audit"
+      ],
+      "relationships": "incident extends task table. problem and change_request also extend task. cmdb_ci is central for configuration items. sys_user relates to many tables via assigned_to, opened_by, closed_by fields."
+    },
+    "queryPatterns": {
+      "timeFiltering": "Use sys_created_on, sys_updated_on, or date fields with 'YYYY-MM-DD HH:MM:SS' format. Example: WHERE sys_created_on >= '2024-01-01 00:00:00'.",
+      "commonQueries": [
+        "SELECT * FROM incident WHERE state = 1 AND active = true",
+        "SELECT * FROM cmdb_ci WHERE operational_status = 1",
+        "SELECT * FROM change_request WHERE state = -5 AND start_date >= '2024-01-01'",
+        "SELECT * FROM sys_user WHERE active = true AND user_name LIKE '%@company.com%'"
+      ],
+      "bestPractices": [
+        "Always filter by active = true for current records",
+        "Use state field for workflow status filtering",
+        "Include sys_id field for unique identification",
+        "Use appropriate date ranges with sys_created_on/sys_updated_on",
+        "Be aware of ACL (Access Control List) restrictions"
+      ]
+    },
+    "fieldConventions": {
+      "userFields": "opened_by, assigned_to, closed_by reference sys_user table. Use sys_user.user_name for email addresses.",
+      "dateFields": "sys_created_on, sys_updated_on, opened_at, closed_at use 'YYYY-MM-DD HH:MM:SS' format in instance timezone.",
+      "idFields": "sys_id is the primary key (32-character string). Foreign keys reference sys_id of related tables."
+    },
+    "limitations": [
+      "ACL restrictions may limit data access based on user roles",
+      "Some system tables require elevated permissions",
+      "Complex queries may hit performance limits",
+      "Historical data retention depends on instance configuration",
+      "API rate limits apply to concurrent requests"
+    ],
+    "troubleshooting": [
+      "Access denied: Check user roles and ACL permissions",
+      "Invalid table: Verify table exists and is accessible",
+      "Performance issues: Add appropriate filters and avoid complex joins",
+      "Authentication errors: Verify credentials and account status",
+      "Rate limiting: Implement proper throttling and retry logic"
+    ]
+  },
+  "lastUpdated": "2024-01-15T10:00:00Z"
+}

@@ -5,7 +5,7 @@ config();
 
 const server = new McpServer({
   name: 'CData Connect Cloud',
-  version: '1.0.5',
+  version: '1.0.7',
   capabilities: {
     tools: {},
   },

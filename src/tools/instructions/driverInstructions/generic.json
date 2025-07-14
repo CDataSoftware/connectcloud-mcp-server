@@ -1,0 +1,53 @@
+{
+  "driverName": "generic",
+  "version": "1.0.0",
+  "instructions": {
+    "overview": "Generic best practices for working with CData drivers. These guidelines apply to most CData drivers and provide a foundation for effective data querying and management.",
+    "dataModel": {
+      "hierarchy": "Most CData drivers organize data in a hierarchical structure: Connection → Catalog → Schema → Table → Columns. The specific hierarchy depends on the data source.",
+      "keyTables": [
+        "Use getCatalogs() to discover available connections",
+        "Use getSchemas() to discover available schemas",
+        "Use getTables() to discover available tables",
+        "Use getColumns() to discover table structure"
+      ],
+      "relationships": "Use getExportedKeys() and getImportedKeys() to discover foreign key relationships between tables. This helps understand data connections and enables proper joins."
+    },
+    "queryPatterns": {
+      "timeFiltering": "Most drivers support standard SQL date functions. Use ISO 8601 format for date literals: 'YYYY-MM-DD' or 'YYYY-MM-DDTHH:MM:SS'. Check driver documentation for specific date functions.",
+      "commonQueries": [
+        "SELECT * FROM [TableName] LIMIT 100",
+        "SELECT COUNT(*) FROM [TableName]",
+        "SELECT * FROM [TableName] WHERE [DateField] >= '2024-01-01'",
+        "SELECT * FROM [TableName] ORDER BY [DateField] DESC LIMIT 10"
+      ],
+      "bestPractices": [
+        "Always start with small result sets using LIMIT clause",
+        "Use specific column names instead of SELECT * for better performance",
+        "Apply filters early in the query to reduce data transfer",
+        "Use proper indexing hints when available",
+        "Test queries with small datasets before running on large tables"
+      ]
+    },
+    "fieldConventions": {
+      "userFields": "Common user field patterns include: CreatedBy, ModifiedBy, Owner, AssignedTo. Field names vary by data source.",
+      "dateFields": "Common date field patterns include: CreatedDate, ModifiedDate, LastUpdated, Timestamp. Use getColumns() to identify date field types.",
+      "idFields": "Primary keys are typically named 'Id', 'ID', or '[TableName]Id'. Foreign keys often follow '[ReferencedTable]Id' pattern."
+    },
+    "limitations": [
+      "API rate limits may apply - check specific driver documentation",
+      "Some data sources have query complexity restrictions",
+      "Large result sets may require pagination using LIMIT and OFFSET",
+      "Not all SQL functions are supported by every driver",
+      "Connection timeouts may occur with long-running queries"
+    ],
+    "troubleshooting": [
+      "Connection errors: Verify credentials and network connectivity",
+      "Query syntax errors: Check driver-specific SQL dialect support",
+      "Performance issues: Add appropriate filters and use LIMIT clause",
+      "Permission errors: Verify user has necessary access rights",
+      "Timeout errors: Break large queries into smaller batches"
+    ]
+  },
+  "lastUpdated": "2024-01-15T10:00:00Z"
+}

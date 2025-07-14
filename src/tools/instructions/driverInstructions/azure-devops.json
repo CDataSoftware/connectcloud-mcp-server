@@ -1,0 +1,63 @@
+{
+  "driverName": "azure-devops",
+  "version": "1.0.0",
+  "instructions": {
+    "overview": "The Azure DevOps MCP Server provides comprehensive access to Azure DevOps data including projects, repositories, commits, pull requests, and work items. This driver requires a systematic approach to querying due to its hierarchical data structure (Project -> Repository -> Data) and specific naming conventions for schemas and tables.",
+    "dataModel": {
+      "hierarchy": "Azure DevOps data follows a strict hierarchy: Project -> Repository -> Specific Data Tables. You must first identify the project, then the repository, before accessing commit, pull request, or branch data. Work items are accessed at the project level through the Analytics schema.",
+      "keyTables": [
+        "CData.Information.Projects",
+        "[Project_<name>].[Project].[Repositories]",
+        "[Project_<name>].[Repository_<id>].[Commits]",
+        "[Project_<name>].[Repository_<id>].[PullRequests]",
+        "[Project_<name>].[Repository_<id>].[GitBranches]",
+        "[Project_<name>].[Analytics].[WorkItems]",
+        "[Project_<name>].[Analytics].[Users]",
+        "[Project_<name>].[Analytics].[Areas]",
+        "[Project_<name>].[Analytics].[Iterations]"
+      ],
+      "relationships": "Projects contain Repositories (many-to-many). Repositories contain Commits, PullRequests, and GitBranches. WorkItems are linked to Projects through Analytics schema. Users can be creators, assignees, or reviewers across multiple entities."
+    },
+    "queryPatterns": {
+      "timeFiltering": "For time-based queries, use DATEADD function: DATEADD(month, -3, GETDATE()) for past 3 months, DATEADD(day, -30, GETDATE()) for past 30 days. Common date fields: CreatedDate, ClosedDate, AuthorDate, CommitterDate.",
+      "commonQueries": [
+        "-- Find project by name\nSELECT * FROM CData.Information.Projects WHERE [Name] LIKE '%<project-name>%'",
+        "-- Find repository in project\nSELECT * FROM [Project_<project-name>].[Project].[Repositories] WHERE [Name] LIKE '%<repository-name>%'",
+        "-- Get recent pull requests\nSELECT [CreatedByDisplayName], COUNT(*) as PRCount FROM [Project_<name>].[Repository_<id>].[PullRequests] WHERE [CreatedDate] >= DATEADD(month, -3, GETDATE()) GROUP BY [CreatedByDisplayName]",
+        "-- Get commit activity\nSELECT [AuthorName], COUNT(*) as CommitCount FROM [Project_<name>].[Repository_<id>].[Commits] WHERE [AuthorDate] >= DATEADD(month, -1, GETDATE()) GROUP BY [AuthorName]",
+        "-- Get work items by assignee\nSELECT [AssignedToDisplayName], [Type], COUNT(*) FROM [Project_<name>].[Analytics].[WorkItems] WHERE [State] = 'Active' GROUP BY [AssignedToDisplayName], [Type]"
+      ],
+      "bestPractices": [
+        "Always start by identifying the project using CData.Information.Projects",
+        "Use get_tables tool to explore available tables after identifying project and repository",
+        "Use get_columns tool to inspect table structure before writing complex queries",
+        "Apply time filters to avoid performance issues with large datasets",
+        "Use LIMIT clause for initial exploration queries",
+        "Handle null values in user fields (deleted/inactive users)",
+        "Use meaningful aliases in SELECT statements for better readability"
+      ]
+    },
+    "fieldConventions": {
+      "userFields": "User information appears in multiple formats: CreatedById/CreatedByDisplayName, AssignedToId/AssignedToDisplayName, AuthorEmail/AuthorName. DisplayName fields are more user-friendly, while Id fields are for joins.",
+      "dateFields": "Common date fields: CreatedDate, ClosedDate, AuthorDate, CommitterDate. Use >= for time range queries. Date format issues may require trying different column names.",
+      "idFields": "Repository IDs are required for accessing repository-specific data. Project names are used in schema names. Use [Id] field from Repositories table for Repository_<id> schema references."
+    },
+    "limitations": [
+      "Must follow strict hierarchy: Project -> Repository -> Data",
+      "Repository ID (not name) required for repository-specific schemas",
+      "Some tables might not be accessible depending on Azure DevOps permissions",
+      "Large result sets may timeout - use LIMIT clause",
+      "Date format variations may require testing different column names",
+      "Deleted/inactive users may appear as null in user fields"
+    ],
+    "troubleshooting": [
+      "If unknown column names: Always use get_columns to inspect table structure before writing queries",
+      "If date format issues: Try different date column names (CreatedDate vs CreationDate)",
+      "If empty results: Check if time filter is too restrictive or repository/project names are correct",
+      "If permission errors: Some tables might not be accessible depending on Azure DevOps permissions",
+      "If large result sets timeout: Use LIMIT clause to avoid timeouts",
+      "If repository not found: Verify repository name spelling and use LIKE '%partial-name%' for fuzzy matching"
+    ]
+  },
+  "lastUpdated": "2025-01-15T10:00:00Z"
+}

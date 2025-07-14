@@ -1,0 +1,59 @@
+{
+  "driverName": "hubspot",
+  "version": "1.0.0",
+  "instructions": {
+    "overview": "HubSpot driver provides access to HubSpot CRM data through the REST API. It supports querying contacts, companies, deals, tickets, and custom objects with HubSpot's property-based data model.",
+    "dataModel": {
+      "hierarchy": "Portal → Objects → Records → Properties. Core objects include contacts, companies, deals, tickets, products. Custom objects follow similar patterns.",
+      "keyTables": [
+        "contacts",
+        "companies",
+        "deals",
+        "tickets",
+        "products",
+        "line_items",
+        "quotes",
+        "calls",
+        "emails",
+        "meetings"
+      ],
+      "relationships": "contacts associate with companies. deals associate with contacts and companies. tickets can be associated with contacts and companies. line_items relate to deals and products."
+    },
+    "queryPatterns": {
+      "timeFiltering": "Use createdate, lastmodifieddate, or hs_lastmodifieddate with timestamp format. Example: WHERE createdate >= '2024-01-01T00:00:00Z'.",
+      "commonQueries": [
+        "SELECT * FROM contacts WHERE lifecyclestage = 'customer'",
+        "SELECT * FROM deals WHERE dealstage = 'closedwon' AND createdate >= '2024-01-01'",
+        "SELECT * FROM companies WHERE industry = 'technology'",
+        "SELECT * FROM tickets WHERE hs_ticket_priority = 'HIGH' AND createdate >= '2024-01-01'"
+      ],
+      "bestPractices": [
+        "Use property names exactly as defined in HubSpot",
+        "Filter by lifecycle stages and deal stages for meaningful data",
+        "Include appropriate date ranges for performance",
+        "Use association queries for related objects",
+        "Be aware of API rate limits and property limits"
+      ]
+    },
+    "fieldConventions": {
+      "userFields": "hubspot_owner_id references HubSpot users. hs_created_by and hs_updated_by track record changes.",
+      "dateFields": "createdate, lastmodifieddate, hs_lastmodifieddate use timestamp format. Custom date properties follow HubSpot naming conventions.",
+      "idFields": "hs_object_id is the primary key. Association IDs link related objects."
+    },
+    "limitations": [
+      "API rate limits apply (100 requests per 10 seconds for most endpoints)",
+      "Property limits exist for custom properties",
+      "Some historical data may not be available",
+      "Complex multi-object queries may require multiple API calls",
+      "Batch operations have size limits"
+    ],
+    "troubleshooting": [
+      "Rate limit exceeded: Implement proper throttling and retry logic",
+      "Invalid property: Verify property names match HubSpot configuration",
+      "Authentication errors: Check API key permissions and scopes",
+      "Performance issues: Use appropriate filters and pagination",
+      "Missing associations: Verify object relationships are properly configured"
+    ]
+  },
+  "lastUpdated": "2024-01-15T10:00:00Z"
+}

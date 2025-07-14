@@ -1,0 +1,59 @@
+{
+  "driverName": "dynamics-365",
+  "version": "1.0.0",
+  "instructions": {
+    "overview": "Dynamics 365 driver provides access to Microsoft Dynamics 365 CRM and ERP data through the Web API. It supports querying entities, relationships, and custom fields with OData-style filtering and expansion.",
+    "dataModel": {
+      "hierarchy": "Organization → Business Unit → Entities → Records → Fields. Standard entities include account, contact, opportunity, lead, systemuser. Custom entities end with '_' suffix followed by a hex string.",
+      "keyTables": [
+        "account",
+        "contact",
+        "opportunity",
+        "lead",
+        "systemuser",
+        "businessunit",
+        "team",
+        "role",
+        "incident",
+        "task"
+      ],
+      "relationships": "account is central with relationships to contact, opportunity, incident. contact relates to account (parentcustomerid). opportunity relates to account (customerid). Many entities have ownerid referencing systemuser."
+    },
+    "queryPatterns": {
+      "timeFiltering": "Use createdon, modifiedon, or other date fields with ISO format. Example: WHERE createdon >= '2024-01-01T00:00:00Z'. Use ge, le, gt, lt operators for date comparisons.",
+      "commonQueries": [
+        "SELECT * FROM account WHERE statecode = 0",
+        "SELECT * FROM contact WHERE parentcustomerid = 'account_guid'",
+        "SELECT * FROM opportunity WHERE statecode = 0 AND estimatedclosedate >= '2024-01-01'",
+        "SELECT * FROM incident WHERE statecode = 0 AND createdon >= '2024-01-01'"
+      ],
+      "bestPractices": [
+        "Always include statecode filters (0 = Active, 1 = Inactive) for better performance",
+        "Use GUID values for entity references (not names)",
+        "Filter by ownerid or businessunit for security and performance",
+        "Use appropriate date ranges with createdon/modifiedon",
+        "Be aware of security role restrictions on data access"
+      ]
+    },
+    "fieldConventions": {
+      "userFields": "ownerid, createdby, modifiedby reference systemuser entity. Use joins or separate queries for user details.",
+      "dateFields": "createdon, modifiedon use DateTime format in UTC. Custom date fields follow standard naming with '_' suffix.",
+      "idFields": "Primary keys are GUIDs. Foreign keys end with 'id' and reference related entities (parentcustomerid, customerid, ownerid)."
+    },
+    "limitations": [
+      "OData query complexity limits apply",
+      "Security roles affect data visibility",
+      "Some system fields are read-only",
+      "Complex many-to-many relationships may require separate queries",
+      "Large result sets may require pagination"
+    ],
+    "troubleshooting": [
+      "Access denied: Check security roles and field-level permissions",
+      "Invalid GUID format: Ensure proper GUID formatting for entity references",
+      "Query complexity: Simplify joins or use separate queries",
+      "Performance issues: Add appropriate filters and use indexed fields",
+      "Authentication errors: Verify user credentials and app registrations"
+    ]
+  },
+  "lastUpdated": "2024-01-15T10:00:00Z"
+}

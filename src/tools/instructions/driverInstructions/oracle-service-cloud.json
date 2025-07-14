@@ -1,0 +1,59 @@
+{
+  "driverName": "oracle-service-cloud",
+  "version": "1.0.0",
+  "instructions": {
+    "overview": "Oracle Service Cloud driver provides access to Oracle Service Cloud (formerly RightNow) data through the REST API. It supports querying incidents, contacts, organizations, and knowledge base articles with complex relationship handling.",
+    "dataModel": {
+      "hierarchy": "Interface → Objects → Records → Fields. Core objects include incidents, contacts, organizations, answers (knowledge), products, categories.",
+      "keyTables": [
+        "incidents",
+        "contacts",
+        "organizations",
+        "answers",
+        "products",
+        "categories",
+        "staff",
+        "queues",
+        "channels",
+        "workflows"
+      ],
+      "relationships": "incidents relate to contacts (primary_contact), organizations (organization), and products. contacts belong to organizations. answers relate to products and categories."
+    },
+    "queryPatterns": {
+      "timeFiltering": "Use created_time, updated_time with ISO format. Example: WHERE created_time >= '2024-01-01T00:00:00Z'. Use ROQL (RightNow Object Query Language) syntax.",
+      "commonQueries": [
+        "SELECT * FROM incidents WHERE status.id = 1 AND created_time >= '2024-01-01T00:00:00Z'",
+        "SELECT * FROM contacts WHERE organization.id = 123",
+        "SELECT * FROM answers WHERE status.id = 2 AND access_levels = 1",
+        "SELECT * FROM organizations WHERE name LIKE '%company%'"
+      ],
+      "bestPractices": [
+        "Always filter by status.id for active records",
+        "Use object.id references for related objects",
+        "Include appropriate date ranges for performance",
+        "Use ROQL syntax for complex queries",
+        "Be aware of interface access level restrictions"
+      ]
+    },
+    "fieldConventions": {
+      "userFields": "staff fields reference staff accounts. Use staff.id for assignments and created_by references.",
+      "dateFields": "created_time, updated_time use ISO 8601 format with timezone info.",
+      "idFields": "id is the primary key (integer). Foreign keys use object.id notation (contact.id, organization.id)."
+    },
+    "limitations": [
+      "ROQL has specific syntax requirements different from standard SQL",
+      "Complex joins may require multiple queries",
+      "Interface access levels affect data visibility",
+      "Some fields require specific permissions to access",
+      "API rate limits and concurrent connection limits apply"
+    ],
+    "troubleshooting": [
+      "Invalid ROQL syntax: Review Oracle Service Cloud ROQL documentation",
+      "Access denied: Check interface permissions and access levels",
+      "Performance issues: Optimize queries and use appropriate indexes",
+      "Authentication errors: Verify credentials and interface configuration",
+      "Rate limiting: Implement proper request throttling"
+    ]
+  },
+  "lastUpdated": "2024-01-15T10:00:00Z"
+}

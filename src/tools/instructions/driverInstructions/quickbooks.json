@@ -1,0 +1,59 @@
+{
+  "driverName": "quickbooks",
+  "version": "1.0.0",
+  "instructions": {
+    "overview": "QuickBooks driver provides access to QuickBooks Online and Desktop data through the QuickBooks API. It supports querying accounting entities like customers, vendors, items, transactions with accounting-specific relationships.",
+    "dataModel": {
+      "hierarchy": "Company → Entities → Transactions → Line Items. Core entities include customers, vendors, items, accounts, employees. Transactions include invoices, bills, payments, purchases.",
+      "keyTables": [
+        "customers",
+        "vendors",
+        "items",
+        "accounts",
+        "employees",
+        "invoices",
+        "bills",
+        "payments",
+        "purchases",
+        "estimates"
+      ],
+      "relationships": "invoices relate to customers. bills relate to vendors. line items relate to items and accounts. payments relate to invoices or bills. estimates can be converted to invoices."
+    },
+    "queryPatterns": {
+      "timeFiltering": "Use MetaData.CreateTime, MetaData.LastUpdatedTime, or TxnDate with ISO format. Example: WHERE MetaData.CreateTime >= '2024-01-01T00:00:00Z'.",
+      "commonQueries": [
+        "SELECT * FROM customers WHERE Active = true",
+        "SELECT * FROM invoices WHERE TxnDate >= '2024-01-01' AND Balance > 0",
+        "SELECT * FROM items WHERE Active = true AND Type = 'Inventory'",
+        "SELECT * FROM accounts WHERE AccountType = 'Income'"
+      ],
+      "bestPractices": [
+        "Filter by Active = true for current records",
+        "Use appropriate date ranges with TxnDate or MetaData fields",
+        "Include account types for meaningful account queries",
+        "Use customer/vendor references for transaction queries",
+        "Be aware of QuickBooks API rate limits and sync token requirements"
+      ]
+    },
+    "fieldConventions": {
+      "userFields": "CreatedBy, ModifiedBy may reference employees or users depending on context.",
+      "dateFields": "MetaData.CreateTime, MetaData.LastUpdatedTime use ISO format. TxnDate uses YYYY-MM-DD format.",
+      "idFields": "Id is the primary key (string). Foreign keys reference related entities (CustomerId, VendorId, ItemId)."
+    },
+    "limitations": [
+      "QuickBooks API has specific rate limits and throttling",
+      "Some operations require sync tokens for data consistency",
+      "Complex multi-entity queries may require multiple API calls",
+      "Historical data access depends on QuickBooks version and subscription",
+      "Some fields are read-only and cannot be modified"
+    ],
+    "troubleshooting": [
+      "Rate limit exceeded: Implement proper throttling and retry logic",
+      "Authentication errors: Verify OAuth tokens and company ID",
+      "Sync token errors: Refresh tokens and handle concurrent access",
+      "Permission denied: Check QuickBooks user permissions and app scope",
+      "Data inconsistency: Use appropriate filters and handle deleted records"
+    ]
+  },
+  "lastUpdated": "2024-01-15T10:00:00Z"
+}

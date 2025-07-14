@@ -1,0 +1,59 @@
+{
+  "driverName": "netsuite",
+  "version": "1.0.0",
+  "instructions": {
+    "overview": "NetSuite driver provides access to NetSuite ERP data through the SuiteQL and REST APIs. It supports querying records, transactions, and custom fields with NetSuite's complex record type system and saved searches.",
+    "dataModel": {
+      "hierarchy": "Account → Subsidiaries → Records → Fields. Core record types include customers, vendors, items, transactions, employees. Custom records follow similar patterns.",
+      "keyTables": [
+        "customer",
+        "vendor",
+        "item",
+        "transaction",
+        "employee",
+        "account",
+        "subsidiary",
+        "location",
+        "department",
+        "class"
+      ],
+      "relationships": "transactions relate to customers/vendors, items, and employees. records can be linked to subsidiaries, locations, departments, and classes for segmentation."
+    },
+    "queryPatterns": {
+      "timeFiltering": "Use datecreated, lastmodified, or trandate with date format. Example: WHERE datecreated >= '1/1/2024' OR trandate >= TO_DATE('2024-01-01', 'YYYY-MM-DD').",
+      "commonQueries": [
+        "SELECT * FROM customer WHERE isinactive = 'F'",
+        "SELECT * FROM transaction WHERE trandate >= '1/1/2024' AND type = 'SalesOrd'",
+        "SELECT * FROM item WHERE isinactive = 'F' AND type = 'InvtPart'",
+        "SELECT * FROM employee WHERE isinactive = 'F' AND subsidiary = 1"
+      ],
+      "bestPractices": [
+        "Filter by isinactive = 'F' for active records",
+        "Use subsidiary filters for multi-subsidiary accounts",
+        "Include appropriate date ranges for transaction queries",
+        "Use record type filters for meaningful results",
+        "Leverage saved searches for complex queries"
+      ]
+    },
+    "fieldConventions": {
+      "userFields": "custrecord fields are custom fields. Standard fields like employee, createdby reference internal IDs.",
+      "dateFields": "datecreated, lastmodified, trandate use NetSuite date format. Custom date fields follow custrecord naming.",
+      "idFields": "id is the internal ID (integer). internalid is commonly used for references. External IDs may be available for integration."
+    },
+    "limitations": [
+      "SuiteQL has specific syntax requirements",
+      "Complex queries may require saved searches",
+      "API governance limits apply to requests and concurrent connections",
+      "Some fields require specific permissions or roles to access",
+      "Historical data retention depends on account configuration"
+    ],
+    "troubleshooting": [
+      "Invalid SuiteQL syntax: Review NetSuite SuiteQL documentation",
+      "Permission denied: Check user role permissions and record access",
+      "Performance issues: Use appropriate filters and consider saved searches",
+      "Authentication errors: Verify token-based authentication setup",
+      "Governance limits: Monitor API usage and implement proper throttling"
+    ]
+  },
+  "lastUpdated": "2024-01-15T10:00:00Z"
+}

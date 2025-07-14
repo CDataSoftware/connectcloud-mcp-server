@@ -1,0 +1,59 @@
+{
+  "driverName": "sharepoint",
+  "version": "1.0.0",
+  "instructions": {
+    "overview": "SharePoint driver provides access to SharePoint Online and SharePoint Server data including lists, libraries, and metadata. It supports querying list items, documents, and site structure through SharePoint REST API.",
+    "dataModel": {
+      "hierarchy": "Site Collection → Site → List/Library → Items/Documents → Fields. Each site contains multiple lists and libraries, which contain items with associated fields.",
+      "keyTables": [
+        "Lists",
+        "Items",
+        "Documents",
+        "Sites",
+        "Users",
+        "Groups",
+        "Folders",
+        "Permissions",
+        "ContentTypes",
+        "Fields"
+      ],
+      "relationships": "Items belong to Lists (ListId). Documents belong to Libraries (LibraryId). Users can be members of Groups. Permissions are assigned to Users/Groups on Lists/Items. ContentTypes define field schemas."
+    },
+    "queryPatterns": {
+      "timeFiltering": "Use Created, Modified fields with ISO format. Example: WHERE Modified >= '2024-01-01T00:00:00Z'. SharePoint uses UTC time.",
+      "commonQueries": [
+        "SELECT * FROM Items WHERE ListTitle = 'MyList' AND Modified >= '2024-01-01'",
+        "SELECT * FROM Documents WHERE LibraryTitle = 'Documents' AND FileType = 'pdf'",
+        "SELECT * FROM Lists WHERE SiteUrl = 'https://company.sharepoint.com/sites/mysite'",
+        "SELECT * FROM Items WHERE ListTitle = 'Tasks' AND Status = 'In Progress'"
+      ],
+      "bestPractices": [
+        "Always filter by Site or List to improve performance",
+        "Use ListTitle or ListId to specify target list",
+        "Include only necessary fields in SELECT statements",
+        "Use appropriate date ranges for Modified/Created filters",
+        "Be aware of SharePoint's 5000 item list view threshold"
+      ]
+    },
+    "fieldConventions": {
+      "userFields": "Author, Editor fields contain user information. CreatedBy, ModifiedBy reference user objects. Use proper field names based on list configuration.",
+      "dateFields": "Created, Modified use DateTime format in UTC. Custom date fields follow SharePoint field naming conventions.",
+      "idFields": "ID is the primary key for list items. ListId, SiteId reference parent objects. GUID format is common for SharePoint IDs."
+    },
+    "limitations": [
+      "SharePoint list view threshold of 5000 items may affect large queries",
+      "Complex queries may require multiple API calls",
+      "Some field types (like multi-value) may need special handling",
+      "Permission-based filtering may limit visible results",
+      "Large file operations may have size and timeout restrictions"
+    ],
+    "troubleshooting": [
+      "List view threshold exceeded: Add indexed column filters or reduce result set",
+      "Access denied: Check user permissions on site/list/item level",
+      "Field not found: Verify field internal names vs display names",
+      "Query timeout: Reduce complexity or add more specific filters",
+      "Authentication issues: Verify credentials and app permissions"
+    ]
+  },
+  "lastUpdated": "2024-01-15T10:00:00Z"
+}

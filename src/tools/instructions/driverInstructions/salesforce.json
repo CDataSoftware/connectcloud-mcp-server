@@ -1,0 +1,59 @@
+{
+  "driverName": "salesforce",
+  "version": "1.0.0",
+  "instructions": {
+    "overview": "Salesforce driver provides access to Salesforce CRM data through the Salesforce REST API. It supports querying standard and custom objects, with automatic handling of Salesforce's SOQL (Salesforce Object Query Language) requirements.",
+    "dataModel": {
+      "hierarchy": "Organization → Objects → Records → Fields. Standard objects include Account, Contact, Lead, Opportunity, Case. Custom objects end with '__c' suffix.",
+      "keyTables": [
+        "Account",
+        "Contact",
+        "Lead",
+        "Opportunity",
+        "Case",
+        "Task",
+        "Event",
+        "User",
+        "Campaign",
+        "Product2"
+      ],
+      "relationships": "Account is the central object with relationships to Contact, Opportunity, and Case. Contact relates to Account (AccountId). Opportunity relates to Account (AccountId). Many objects have OwnerId referencing User."
+    },
+    "queryPatterns": {
+      "timeFiltering": "Use CreatedDate, LastModifiedDate, or CloseDate with ISO format. Example: WHERE CreatedDate >= 2024-01-01T00:00:00Z. Use LAST_N_DAYS, THIS_WEEK, THIS_MONTH for relative dates.",
+      "commonQueries": [
+        "SELECT Id, Name, Phone FROM Account WHERE Type = 'Customer'",
+        "SELECT Id, FirstName, LastName, Email FROM Contact WHERE AccountId = 'account_id'",
+        "SELECT Id, Name, Amount, CloseDate FROM Opportunity WHERE StageName = 'Closed Won'",
+        "SELECT Id, Subject, Status FROM Case WHERE CreatedDate = TODAY"
+      ],
+      "bestPractices": [
+        "Always include Id field in SELECT statements",
+        "Use LIMIT clause to control result set size (max 2000 for SOQL)",
+        "Filter by indexed fields (Id, Name, CreatedDate, LastModifiedDate) for better performance",
+        "Use specific field names rather than SELECT *",
+        "Avoid complex nested queries - use separate queries instead"
+      ]
+    },
+    "fieldConventions": {
+      "userFields": "OwnerId, CreatedById, LastModifiedById reference User Id. Use joins or separate queries to get user details.",
+      "dateFields": "CreatedDate, LastModifiedDate use DateTime format. Date fields like CloseDate use Date format. Use ISO 8601 format in WHERE clauses.",
+      "idFields": "All Id fields are 15 or 18 character Salesforce IDs. Foreign key fields end with 'Id' (AccountId, ContactId, etc.)."
+    },
+    "limitations": [
+      "SOQL query results limited to 2000 records per query",
+      "No support for complex joins - use separate queries or subqueries",
+      "Governor limits apply - limited number of SOQL queries per transaction",
+      "Some fields may not be queryable depending on field-level security",
+      "Custom objects and fields require proper API names with __c suffix"
+    ],
+    "troubleshooting": [
+      "INVALID_FIELD error: Check field API names and object permissions",
+      "MALFORMED_QUERY: Review SOQL syntax, ensure proper field names",
+      "Query timeout: Reduce result set size or add more specific filters",
+      "Insufficient privileges: Check user permissions and field-level security",
+      "Governor limits exceeded: Reduce query complexity or batch operations"
+    ]
+  },
+  "lastUpdated": "2024-01-15T10:00:00Z"
+}

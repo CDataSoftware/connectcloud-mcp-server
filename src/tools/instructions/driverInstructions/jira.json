@@ -1,0 +1,59 @@
+{
+  "driverName": "jira",
+  "version": "1.0.0",
+  "instructions": {
+    "overview": "Jira driver provides access to Atlassian Jira data through the REST API. It supports querying issues, projects, users, and workflows with JQL (Jira Query Language) compatible syntax.",
+    "dataModel": {
+      "hierarchy": "Instance → Project → Issue → Fields/Comments/Attachments. Core entities include issues, projects, users, workflows, components, versions.",
+      "keyTables": [
+        "issues",
+        "projects",
+        "users",
+        "workflows",
+        "components",
+        "versions",
+        "comments",
+        "attachments",
+        "worklog",
+        "issuetypes"
+      ],
+      "relationships": "issues belong to projects. issues have assignee and reporter (users). issues can have components and affect versions. comments and worklogs belong to issues."
+    },
+    "queryPatterns": {
+      "timeFiltering": "Use created, updated, or resolutiondate with ISO format. Example: WHERE created >= '2024-01-01' OR updated >= '2024-01-01T00:00:00Z'.",
+      "commonQueries": [
+        "SELECT * FROM issues WHERE project = 'PROJ' AND status = 'Open'",
+        "SELECT * FROM issues WHERE assignee = 'user@company.com' AND resolution IS NULL",
+        "SELECT * FROM issues WHERE issuetype = 'Bug' AND priority = 'High'",
+        "SELECT * FROM issues WHERE project = 'PROJ' AND created >= '2024-01-01'"
+      ],
+      "bestPractices": [
+        "Always filter by project for better performance",
+        "Use issue keys (PROJ-123) for specific issue queries",
+        "Filter by status or resolution for meaningful subsets",
+        "Include appropriate date ranges with created/updated",
+        "Use JQL-compatible syntax for complex queries"
+      ]
+    },
+    "fieldConventions": {
+      "userFields": "assignee, reporter, creator reference user accounts. Use email or username for identification.",
+      "dateFields": "created, updated, resolutiondate use ISO 8601 format. Custom date fields follow Jira naming conventions.",
+      "idFields": "id is the primary key (integer). key is the human-readable identifier (PROJECT-123). Foreign keys reference related objects."
+    },
+    "limitations": [
+      "JQL syntax has specific requirements and limitations",
+      "Complex queries may require multiple API calls",
+      "Custom fields have dynamic names based on configuration",
+      "Some fields require specific permissions to access",
+      "API rate limits and concurrent request limits apply"
+    ],
+    "troubleshooting": [
+      "Invalid JQL syntax: Review Atlassian JQL documentation",
+      "Permission denied: Check user permissions for projects and fields",
+      "Performance issues: Add project filters and use appropriate indexes",
+      "Authentication errors: Verify credentials and API token permissions",
+      "Rate limiting: Implement proper throttling and retry mechanisms"
+    ]
+  },
+  "lastUpdated": "2024-01-15T10:00:00Z"
+}
