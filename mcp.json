@@ -1,9 +1,10 @@
 {
   "name": "CData Connect Cloud",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Model Context Protocol server for CData Connect Cloud",
   "author": "CData Software",
   "license": "MIT",
+  "transport": "streamable-http",
   "capabilities": {
     "tools": true
   },

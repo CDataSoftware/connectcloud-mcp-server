@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "connectcloud-stdio": {
+      "command": "npm",
+      "args": ["run", "dev:stdio"],
+      "env": {
+        "TRANSPORT_TYPE": "stdio",
+        "LOG_ENABLED": "true",
+        "LOG_LEVEL": "debug"
+      }
+    },
+    "connectcloud-http": {
+      "type": "streamable-http",
+      "url": "http://localhost:3000/mcp",
+      "note": "Streamable HTTP transport - start server with 'npm run dev:http' first"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { CDATA_API_URL, log } from '../config';
+import { CDATA_API_URL, log, error } from '../config';
 
 async function getCatalogs() {
   try {
@@ -28,15 +28,15 @@ async function getCatalogs() {
       result: data,
       id: global.currentRequestId || null,
     };
-  } catch (error: any) {
+  } catch (err: any) {
     error({
       level: 'error',
       message: 'Error fetching catalogs',
       timestamp: new Date().toISOString(),
       error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
       },
       details: {
         operation: 'getCatalogs',
@@ -47,10 +47,10 @@ async function getCatalogs() {
       jsonrpc: '2.0',
       error: {
         code: -32000,
-        message: error.message || 'Unknown error fetching catalogs',
+        message: err.message || 'Unknown error fetching catalogs',
         data: {
-          name: error.name,
-          stack: error.stack,
+          name: err.name,
+          stack: err.stack,
         },
       },
       id: global.currentRequestId || null,

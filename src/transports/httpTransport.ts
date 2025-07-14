@@ -1,5 +1,6 @@
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express from 'express';
+import { randomUUID } from 'crypto';
 import { log, error, info, debug } from '../utils/logger';
 import { server } from '../server/mcpServer';
 import { createDirectHandler } from '../http/routes';
@@ -84,7 +85,7 @@ export async function setupHttpTransport(port: number, host: string) {
         // New session for standard MCP clients
         transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => {
-            const id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
+            const id = randomUUID();
             log(`Generated new session ID: ${id}`);
             return id;
           },
@@ -151,7 +152,7 @@ export async function setupHttpTransport(port: number, host: string) {
     }
   });
 
-  // Handler for GET and DELETE requests (for SSE and session termination)
+  // Handler for GET and DELETE requests for session management
   const handleSessionRequest = async (req: express.Request, res: express.Response) => {
     const sessionId = req.headers['mcp-session-id'] as string | undefined;
     if (!sessionId || !transports[sessionId]) {
@@ -163,7 +164,7 @@ export async function setupHttpTransport(port: number, host: string) {
     await transport.handleRequest(req, res);
   };
 
-  // Handle GET requests for SSE
+  // Handle GET requests for streamable HTTP transport
   app.get('/mcp', handleSessionRequest);
 
   // Handle DELETE requests for session termination

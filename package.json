@@ -1,6 +1,6 @@
 {
   "name": "@cdatasoftware/connectcloud-mcp-server",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "dist/index.js",
   "description": "MCP Server for Connect Cloud API Integration",
   "keywords": [
@@ -21,20 +21,31 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "start:http": "cross-env TRANSPORT_TYPE=http npm start",
+    "start:stdio": "cross-env TRANSPORT_TYPE=stdio npm start",
     "build-start": "npm run build && npm run start",
     "dev": "ts-node src/index.ts",
+    "dev:http": "cross-env TRANSPORT_TYPE=http npm run dev",
+    "dev:stdio": "cross-env TRANSPORT_TYPE=stdio npm run dev",
     "prepare": "npm run build",
     "watch": "tsc --watch",
     "clean": "rm -rf dist",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "lint:format": "npm run lint && npm run format"
+    "lint:format": "npm run lint && npm run format",
+    "inspector": "npx @modelcontextprotocol/inspector --config mcp-inspector.json",
+    "inspector:stdio": "npx @modelcontextprotocol/inspector --config mcp-inspector.json --server connectcloud-stdio",
+    "inspector:http": "npx @modelcontextprotocol/inspector --config mcp-inspector.json --server connectcloud-http",
+    "inspector:cli": "npx @modelcontextprotocol/inspector --cli --config mcp-inspector.json --server connectcloud-stdio",
+    "test:inspector": "npm run build && npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/list",
+    "validate:inspector": "node scripts/validate-inspector.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.2",
     "axios": "^1.8.4",
     "dotenv": "^16.5.0",
+    "express": "^4.21.2",
     "winston": "^3.17.0",
     "zod": "^3.24.3"
   },
@@ -44,6 +55,7 @@
     "@types/node": "^22.14.1",
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",
+    "cross-env": "^7.0.3",
     "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.2.6",

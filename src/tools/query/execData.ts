@@ -1,4 +1,4 @@
-import { CDATA_API_URL, log } from '../config';
+import { CDATA_API_URL, log, error } from '../config';
 
 async function execData(
   procedure: string,
@@ -41,15 +41,15 @@ async function execData(
       result: data,
       id: global.currentRequestId || null,
     };
-  } catch (error: any) {
+  } catch (err: any) {
     error({
       level: 'error',
       message: 'Error fetching exec data',
       timestamp: new Date().toISOString(),
       error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
       },
       details: {
         procedure,
@@ -62,10 +62,10 @@ async function execData(
       jsonrpc: '2.0',
       error: {
         code: -32000,
-        message: error.message || 'Unknown error during stored procedure execution',
+        message: err.message || 'Unknown error during stored procedure execution',
         data: {
-          name: error.name,
-          stack: error.stack,
+          name: err.name,
+          stack: err.stack,
         },
       },
       id: global.currentRequestId || null,

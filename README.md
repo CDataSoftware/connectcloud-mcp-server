@@ -59,10 +59,15 @@ npx -y @smithery/cli install @CDataSoftware/connectcloud-mcp-server --client cla
    CDATA_USERNAME=your_username
    CDATA_PAT=your_personal_access_token
 
-   # Optional
+   # Optional Configuration
    LOG_ENABLED=false
    LOG_LEVEL=info
    CDATA_URL=https://your-test-environment-url
+   
+   # Transport Configuration (default: http)
+   TRANSPORT_TYPE=http  # or 'stdio' for terminal usage
+   PORT=3000           # HTTP server port
+   HOST=localhost      # HTTP server host
    ```
 
 ---
@@ -85,6 +90,94 @@ Build and start:
 npm run build
 npm start
 ```
+
+### HTTP Transport Endpoints
+
+When running with HTTP transport (default), the server provides these endpoints:
+
+- **MCP Endpoint**: `http://localhost:3000/mcp` - Primary Model Context Protocol endpoint
+- **Direct Endpoint**: `http://localhost:3000/direct` - Direct JSON-RPC endpoint without session management
+- **Manifest**: `http://localhost:3000/.well-known/mc/manifest.json` - MCP discovery manifest
+
+### Using STDIO Transport
+
+To use STDIO transport instead (for terminal/CLI usage):
+
+```bash
+TRANSPORT_TYPE=stdio npm start
+```
+
+---
+
+## 🔍 Testing with MCP Inspector
+
+The MCP Inspector is a visual testing tool that provides both a web UI and CLI interface for testing MCP servers. This project includes full support for the inspector.
+
+### Quick Setup Validation
+
+Run the setup validation script to ensure everything is configured correctly:
+
+```bash
+npm run validate:inspector
+```
+
+This will check your configuration and provide detailed setup instructions.
+
+### Quick Start with Inspector
+
+1. **Install the inspector globally** (optional but recommended):
+   ```bash
+   npm install -g @modelcontextprotocol/inspector
+   ```
+
+2. **Launch inspector with web UI**:
+   ```bash
+   npm run inspector
+   ```
+   This opens a web interface where you can select and test different transport configurations.
+
+### Testing Different Transports
+
+#### STDIO Transport
+```bash
+# Launch inspector with STDIO transport (starts server automatically)
+npm run inspector:stdio
+```
+
+#### HTTP Transport  
+```bash
+# Start the server first
+npm run dev:http
+
+# Then in another terminal, launch inspector
+npm run inspector:http
+```
+
+#### Command Line Testing
+```bash
+# Quick CLI testing with STDIO transport
+npm run inspector:cli
+
+# Test specific methods directly
+npm run test:inspector
+```
+
+### Inspector Configuration
+
+The project includes a `mcp-inspector.json` configuration file with pre-configured server setups:
+
+- **connectcloud-stdio**: STDIO transport with automatic server startup
+- **connectcloud-http**: Streamable HTTP transport (requires manual server start)
+
+### Available Inspector Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run inspector` | Launch inspector web UI with server selection |
+| `npm run inspector:stdio` | Launch inspector with STDIO transport |
+| `npm run inspector:http` | Launch inspector with HTTP transport |
+| `npm run inspector:cli` | CLI mode with STDIO transport |
+| `npm run test:inspector` | Quick automated test |
 
 ---
 

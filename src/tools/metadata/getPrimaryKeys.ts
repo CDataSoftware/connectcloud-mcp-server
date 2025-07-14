@@ -1,4 +1,4 @@
-import { CDATA_API_URL, log } from '../config';
+import { CDATA_API_URL, log, error } from '../config';
 
 async function getPrimaryKeys(catalogName?: string, schemaName?: string, tableName?: string) {
   try {
@@ -44,15 +44,15 @@ async function getPrimaryKeys(catalogName?: string, schemaName?: string, tableNa
       result: data,
       id: global.currentRequestId || null,
     };
-  } catch (error: any) {
+  } catch (err: any) {
     error({
       level: 'error',
       message: 'Error fetching primary keys',
       timestamp: new Date().toISOString(),
       error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
       },
       details: {
         catalogName: catalogName || 'all',
@@ -65,10 +65,10 @@ async function getPrimaryKeys(catalogName?: string, schemaName?: string, tableNa
       jsonrpc: '2.0',
       error: {
         code: -32000,
-        message: error.message || 'Unknown error fetching primary keys',
+        message: err.message || 'Unknown error fetching primary keys',
         data: {
-          name: error.name,
-          stack: error.stack,
+          name: err.name,
+          stack: err.stack,
         },
       },
       id: global.currentRequestId || null,

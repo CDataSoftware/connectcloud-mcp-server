@@ -1,4 +1,4 @@
-import { CDATA_API_URL, log } from '../config';
+import { CDATA_API_URL, log, error } from '../config';
 
 async function getProcedureParameters(
   catalogName?: string,
@@ -51,15 +51,15 @@ async function getProcedureParameters(
       result: data,
       id: global.currentRequestId || null,
     };
-  } catch (error: any) {
+  } catch (err: any) {
     error({
       level: 'error',
       message: 'Error fetching procedure parameters',
       timestamp: new Date().toISOString(),
       error: {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
       },
       details: {
         catalogName: catalogName || 'all',
@@ -73,10 +73,10 @@ async function getProcedureParameters(
       jsonrpc: '2.0',
       error: {
         code: -32000,
-        message: error.message || 'Unknown error fetching procedure parameters',
+        message: err.message || 'Unknown error fetching procedure parameters',
         data: {
-          name: error.name,
-          stack: error.stack,
+          name: err.name,
+          stack: err.stack,
         },
       },
       id: global.currentRequestId || null,

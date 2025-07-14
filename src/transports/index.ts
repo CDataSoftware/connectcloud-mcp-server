@@ -16,7 +16,7 @@ export async function setupTransport() {
   const host = process.env.HOST || 'localhost';
   const transportType = process.env.TRANSPORT_TYPE || 'stdio';
 
-  // If using as a CLI tool with stdio
+  // If explicitly using stdio transport
   if (transportType === 'stdio') {
     info('Using stdio transport as specified in environment');
     return setupStdioTransport();
