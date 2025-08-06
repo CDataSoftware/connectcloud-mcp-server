@@ -13,12 +13,15 @@ import {
   getSchemas,
   getTables,
 } from '../tools/metadata';
+import { getPrompts, generatePromptMessages } from '../tools/prompts/prompts';
 
 /**
- * Register all tools with the MCP server
+ * Register all tools and prompts with the MCP server
  * @param server The MCP server instance
  */
 export function registerTools(server: McpServer) {
+  // Register prompts
+  registerPrompts(server);
   // Query Data tool
   server.tool(
     'queryData',
@@ -404,4 +407,63 @@ export function registerTools(server: McpServer) {
       }
     },
   );
+}
+
+/**
+ * Register prompts with the MCP server
+ * @param server The MCP server instance
+ */
+function registerPrompts(server: McpServer) {
+  const prompts = getPrompts();
+
+  // Register each prompt individually
+  prompts.forEach(prompt => {
+    // Convert prompt arguments to Zod schema
+    const argsSchema: Record<string, z.ZodType> = {};
+
+    if (prompt.arguments) {
+      prompt.arguments.forEach(arg => {
+        // Convert to Zod string schema, make optional if not required
+        argsSchema[arg.name] = arg.required
+          ? z.string().describe(arg.description || '')
+          : z
+              .string()
+              .optional()
+              .describe(arg.description || '');
+      });
+    }
+
+    // Register the prompt using the correct API
+    if (Object.keys(argsSchema).length > 0) {
+      // Prompt with arguments
+      server.prompt(prompt.name, prompt.description || '', argsSchema, args => {
+        const messages = generatePromptMessages(prompt.name, args || {});
+        return {
+          description: prompt.description || '',
+          messages: messages.map(msg => ({
+            role: msg.role as 'user' | 'assistant',
+            content: {
+              type: 'text' as const,
+              text: msg.content.text,
+            },
+          })),
+        };
+      });
+    } else {
+      // Prompt without arguments
+      server.prompt(prompt.name, prompt.description || '', () => {
+        const messages = generatePromptMessages(prompt.name, {});
+        return {
+          description: prompt.description || '',
+          messages: messages.map(msg => ({
+            role: msg.role as 'user' | 'assistant',
+            content: {
+              type: 'text' as const,
+              text: msg.content.text,
+            },
+          })),
+        };
+      });
+    }
+  });
 }
