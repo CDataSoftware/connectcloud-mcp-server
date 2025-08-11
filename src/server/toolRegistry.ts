@@ -13,6 +13,7 @@ import {
   getSchemas,
   getTables,
 } from '../tools/metadata';
+import { getInstructions } from '../tools/instructions';
 
 /**
  * Register all tools with the MCP server
@@ -387,6 +388,45 @@ export function registerTools(server: McpServer) {
     async ({ catalogName, schemaName, tableName }) => {
       try {
         const response = await getTables(catalogName, schemaName, tableName);
+        if (response.error) {
+          return {
+            content: [{ type: 'text', text: `Error: ${response.error.message}` }],
+            isError: true,
+          };
+        }
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.result, null, 2) }],
+        };
+      } catch (error: any) {
+        return {
+          content: [{ type: 'text', text: `Error: ${error.message}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
+  // Get Instructions tool
+  server.tool(
+    'getInstructions',
+    'Retrieve detailed setup instructions and best practices for working with specific CData Connect Cloud drivers. This tool provides structured guidance including connection setup, common queries, available tables, best practices, and troubleshooting tips. Use this tool when you need help with driver-specific configuration or usage patterns.',
+    {
+      driverName: z
+        .string()
+        .optional()
+        .describe(
+          'The name of the driver to get instructions for (e.g., "Azure DevOps", "Salesforce", "SharePoint"). If not provided, generic instructions will be returned.',
+        ),
+      connectionId: z
+        .string()
+        .optional()
+        .describe(
+          'Optional connection ID for additional context. This helps with tracking and may provide connection-specific guidance in future versions.',
+        ),
+    },
+    async ({ driverName, connectionId }) => {
+      try {
+        const response = await getInstructions(driverName, connectionId);
         if (response.error) {
           return {
             content: [{ type: 'text', text: `Error: ${response.error.message}` }],
