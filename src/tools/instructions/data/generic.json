@@ -1,0 +1,65 @@
+{
+  "driverName": "generic",
+  "version": "1.0.0",
+  "instructions": {
+    "overview": "This is a generic set of instructions for CData Connect Cloud drivers. Each data source has unique characteristics, schemas, and access patterns. This guide provides universal best practices and common approaches that apply across most CData drivers. For driver-specific instructions with detailed query patterns and data models, specify a supported driver name when calling getInstructions.",
+    "dataModel": {
+      "hierarchy": "Most CData drivers follow a hierarchical structure: Catalog -> Schema -> Table -> Column. Use the metadata tools (getCatalogs, getSchemas, getTables, getColumns) to explore the data structure. Some drivers may have flat structures or unique organizational patterns.",
+      "keyTables": [
+        "Use getCatalogs to discover available connections/catalogs",
+        "Use getSchemas to find schemas within a catalog",
+        "Use getTables to list all tables in a schema",
+        "Use getColumns to inspect table structure and column details"
+      ],
+      "relationships": "Table relationships vary by data source. Some systems have foreign key relationships, while others (like APIs) may use reference fields or nested structures. Use getExportedKeys and getImportedKeys to discover relationships where available."
+    },
+    "queryPatterns": {
+      "timeFiltering": "For time-based queries, use standard SQL date functions: WHERE created_date >= DATEADD(day, -30, GETDATE()) for past 30 days. Common date field patterns: created_date, modified_date, updated_at, timestamp. Date field names vary by data source.",
+      "commonQueries": [
+        "-- Explore available data\nSELECT * FROM [table_name] LIMIT 10",
+        "-- Count records in a table\nSELECT COUNT(*) FROM [table_name]",
+        "-- Filter by date range\nSELECT * FROM [table_name] WHERE date_field >= DATEADD(day, -7, GETDATE())",
+        "-- Group and count\nSELECT category_field, COUNT(*) as record_count FROM [table_name] GROUP BY category_field",
+        "-- Join related tables\nSELECT a.*, b.related_field FROM table_a a LEFT JOIN table_b b ON a.id = b.foreign_key_id"
+      ],
+      "bestPractices": [
+        "Always start by exploring the data structure using metadata tools",
+        "Use LIMIT clause for initial exploration to avoid large result sets",
+        "Test queries with small result sets before scaling up",
+        "Use proper table and column name quoting when names contain spaces or special characters",
+        "Apply appropriate filters to optimize query performance",
+        "Be mindful of API rate limits for cloud-based data sources",
+        "Use meaningful column aliases for better readability"
+      ]
+    },
+    "fieldConventions": {
+      "namingPatterns": "Field naming conventions vary by data source. Common patterns include: snake_case (user_id), camelCase (userId), PascalCase (UserId), or space-separated (User ID). Use getColumns to see exact field names.",
+      "commonFields": "Most data sources have common field types: ID fields (id, identifier, key), name fields (name, title, label), date fields (created, modified, updated), status fields (status, state, active), and user fields (created_by, owner, assignee).",
+      "dataTypes": "Pay attention to data types returned by getColumns. String fields may need quotes in WHERE clauses, numeric fields don't. Date fields may require specific formatting depending on the data source."
+    },
+    "limitations": [
+      "Query capabilities vary by data source (some may not support JOINs or complex operations)",
+      "API-based sources may have rate limits or pagination constraints",
+      "Some fields may be read-only or computed",
+      "Date format requirements vary by system",
+      "Large result sets may timeout - use LIMIT and filtering",
+      "Authentication and permissions affect data accessibility"
+    ],
+    "troubleshooting": [
+      "If table not found: Use getTables to verify table names and check schema context",
+      "If column not found: Use getColumns to inspect exact column names and types",
+      "If permission errors: Verify connection credentials and data source permissions",
+      "If empty results: Check filter conditions and verify data exists in the source",
+      "If query timeouts: Add LIMIT clause and more specific WHERE conditions",
+      "If syntax errors: Review data source-specific SQL dialect requirements",
+      "If connection issues: Verify connection parameters and network connectivity"
+    ],
+    "supportedDrivers": [
+      "Azure DevOps - Project management and repository data",
+      "Salesforce - CRM and custom object data", 
+      "SharePoint - Document libraries and list data",
+      "And many more - specify driver name for detailed instructions"
+    ]
+  },
+  "lastUpdated": "2025-01-15T10:00:00Z"
+}
