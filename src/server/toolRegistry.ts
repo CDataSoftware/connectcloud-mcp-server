@@ -105,7 +105,7 @@ export function registerTools(server: McpServer) {
   // Get Catalogs tool
   server.tool(
     'getCatalogs',
-    'Retrieve a list of available connections from CData Connect Cloud.  The connection names should be used as catalog names in other tools and in any queries to CData Connect Cloud. Use the `getSchemas` tool to get a list of available schemas for a specific catalog.',
+    'Retrieve a list of available connections from CData Connect Cloud.  The connection names should be used as catalog names in other tools and in any queries to CData Connect Cloud. Use `getInstructions` to get the list of instructions about drivers.',
     {},
     async () => {
       try {
@@ -409,7 +409,7 @@ export function registerTools(server: McpServer) {
   // Get Instructions tool
   server.tool(
     'getInstructions',
-    'Retrieve detailed setup instructions and best practices for working with specific CData Connect Cloud drivers. This tool provides structured guidance including connection setup, common queries, available tables, best practices, and troubleshooting tips. Use this tool when you need help with driver-specific configuration or usage patterns.',
+    'Retrieve detailed setup instructions and best practices for working with specific CData Connect Cloud drivers. This tool provides structured guidance including connection setup, common queries, available tables, best practices, and troubleshooting tips. Use this tool when you need help with driver-specific configuration or usage patterns. Use the `getSchemas` tool to get a list of available schemas for a specific catalog.',
     {
       driverName: z
         .string()
