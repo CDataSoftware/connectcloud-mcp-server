@@ -2,35 +2,1206 @@
   "driverName": "azure-devops",
   "version": "1.0.0",
   "instructions": {
-    "overview": "The Azure DevOps MCP Server provides comprehensive access to Azure DevOps data including projects, repositories, commits, pull requests, and work items. This driver requires a systematic approach to querying due to its hierarchical data structure (Project -> Repository -> Data) and specific naming conventions for schemas and tables.",
+    "CRITICAL_WARNING": "⚠️ MANDATORY: In CData Connect Cloud, NEVER use SQL queries with 'CData' catalog. NEVER execute queries like 'SELECT TABLE_CATALOG FROM CData.QueryFederation.sys_catalogs'. You MUST use the getCatalogs tool instead. YOU CANNOT QUERY QUERY FEDERATION.",
+    "TOOL_USAGE_REQUIREMENT": "🔧 REQUIRED: Use ONLY the provided MCP tools for metadata discovery: getCatalogs, getSchemas, getTables, getColumns.",
+    "overview": "The Azure DevOps MCP Server provides comprehensive access to Azure DevOps data including projects, repositories, commits, pull requests, and work items. This guide provides a systematic approach to querying this data effectively. This driver requires a systematic approach to querying due to its hierarchical data structure (Project -> Repository -> Data) and specific naming conventions for schemas and tables.",
+    "limitationsNote": "CRITICAL: You cannot issue queries directly with the Catalog name as 'CData'. In CData Connect Cloud, you MUST always use the actual catalog name obtained from calling the get_catalogs tool. Never use hardcoded catalog names.",
+    "catalogInstruction": "IMPORTANT: In CData Connect Cloud, the catalog name is never 'CData'. Always call the get_catalogs tool first to discover the actual catalog name(s) available in your connection, then use that exact catalog name in all your queries. This is mandatory for all Azure DevOps queries.",
+    "stepByStepProcess": {
+      "step0": {
+        "title": "Get Available Catalogs - MANDATORY FIRST STEP",
+        "description": "CRITICAL: Use the getCatalogs MCP tool to discover available catalogs. DO NOT execute SQL queries like 'SELECT TABLE_CATALOG FROM CData.QueryFederation.sys_catalogs'. In CData Connect Cloud, catalog names are dynamic and must be retrieved via the getCatalogs tool.",
+        "action": "Call getCatalogs tool (not SQL query) to retrieve all available catalog names",
+        "warning": "NEVER use SQL queries for metadata discovery - use MCP tools only",
+        "forbidden": "DO NOT use: SELECT TABLE_CATALOG FROM CData.QueryFederation.sys_catalogs WHERE DRIVER = 'AzureDevOps'"
+      },
+      "step1": {
+        "title": "Identify the Project",
+        "description": "Always start by identifying the target project from the user's request using the catalog name obtained from step 0.",
+        "methods": [
+          {
+            "method": "If you know the project name",
+            "query": "SELECT * FROM <catalog-name>.Information.Projects WHERE [Name] LIKE '%<project-name>%'"
+          },
+          {
+            "method": "List all projects",
+            "query": "SELECT * FROM <catalog-name>.Information.Projects"
+          }
+        ]
+      },
+      "step2": {
+        "title": "Find the Repository",
+        "description": "Once you have the project name, locate the specific repository.",
+        "query": "SELECT * FROM [<catalog-name>].[Project].[Repositories] WHERE [Name] LIKE '%<repository-name>%'"
+      },
+      "step3": {
+        "title": "Explore Available Data",
+        "description": "After identifying the project and repository ID, discover available tables by using the get_tables tool",
+        "parameters": {
+          "catalog": "<catalog-name>",
+          "schema": "Repository_<repository-id>"
+        }
+      }
+    },
     "dataModel": {
       "hierarchy": "Azure DevOps data follows a strict hierarchy: Project -> Repository -> Specific Data Tables. You must first identify the project, then the repository, before accessing commit, pull request, or branch data. Work items are accessed at the project level through the Analytics schema.",
+      "repositorySchemaStructure": {
+        "description": "Repository Schema Tables - accessed via [Project_<name>].[Repository_<id>]",
+        "tables": {
+          "Commits": "Contains commit history with author information and timestamps",
+          "PullRequests": "Contains PR data including creator, reviewers, creation/completion dates",
+          "GitBranches": "Branch information"
+        }
+      },
+      "projectAnalyticsStructure": {
+        "description": "Project Analytics Schema Tables - accessed via [Project_<name>].[Analytics]",
+        "tables": {
+          "WorkItems": "User stories, bugs, tasks, etc.",
+          "Areas": "Project area paths",
+          "Iterations": "Sprint/iteration information",
+          "Users": "Detailed user information"
+        }
+      },
       "keyTables": [
-        "CData.Information.Projects",
-        "[Project_<name>].[Project].[Repositories]",
-        "[Project_<name>].[Repository_<id>].[Commits]",
-        "[Project_<name>].[Repository_<id>].[PullRequests]",
-        "[Project_<name>].[Repository_<id>].[GitBranches]",
-        "[Project_<name>].[Analytics].[WorkItems]",
-        "[Project_<name>].[Analytics].[Users]",
-        "[Project_<name>].[Analytics].[Areas]",
-        "[Project_<name>].[Analytics].[Iterations]"
+        "[<catalog-name>].[Information].[Projects]",
+        "[<catalog-name>].[Project].[Repositories]",
+        "[<catalog-name>].[Repository_<id>].[Commits]",
+        "[<catalog-name>].[Repository_<id>].[PullRequests]",
+        "[<catalog-name>].[Repository_<id>].[GitBranches]",
+        "[<catalog-name>].[Analytics].[WorkItems]",
+        "[<catalog-name>].[Analytics].[Users]",
+        "[<catalog-name>].[Analytics].[Areas]",
+        "[<catalog-name>].[Analytics].[Iterations]"
       ],
       "relationships": "Projects contain Repositories (many-to-many). Repositories contain Commits, PullRequests, and GitBranches. WorkItems are linked to Projects through Analytics schema. Users can be creators, assignees, or reviewers across multiple entities."
+    },
+    "dataModelDetails": {
+      "overview": "The driver allows you to access Azure DevOps data at multiple levels, from organization-wide information down to specific project and repository details. Once connected, the driver organizes data into two catalog types.",
+      "catalogTypes": {
+        "staticCDataCatalog": {
+          "description": "The static CData catalog operates at the organization level and contains one schema called Information, which provides data across your entire Azure DevOps organization.",
+          "level": "organization",
+          "schema": "Information"
+        },
+        "dynamicProjectCatalogs": {
+          "description": "The driver also creates dynamic Project catalogs for each specific project in your organization. Each Project catalog contains two static schemas and additional dynamic schemas.",
+          "schemas": {
+            "Analytics": "Provides data from the Analytics service",
+            "Project": "Contains general information about that specific Azure DevOps project",
+            "Repository_schemas": "Each Project catalog automatically generates Repository schemas for every repository within that project, allowing you to access repository-specific information"
+          }
+        }
+      },
+      "catalogStructureExample": {
+        "CData": {
+          "Information": "Organization-wide data"
+        },
+        "Project_1": {
+          "Analytics": "Analytics service data for Project_1",
+          "Project": "General project information for Project_1",
+          "Repository_c36a682e-db74-4bc1-b0c3-8929402ce826": "Repository-specific data",
+          "Repository_61b94efc-fe12-4179-825c-5ab3d0fee244": "Repository-specific data"
+        },
+        "Project_2": {
+          "Analytics": "Analytics service data for Project_2",
+          "Project": "General project information for Project_2",
+          "Repository_3dfd899f-c4c2-419a-a33d-23c59582922a": "Repository-specific data"
+        }
+      },
+      "cdataCatalog": {
+        "description": "This contains information that is related to the entire Azure DevOps organization rather than being tied to a specific project. It can be accessed by setting the catalog to CData.",
+        "informationSchema": {
+          "description": "As the only schema in the CData catalog, this also contains information that is related to the entire Azure DevOps organization. It can be accessed by setting the schema to Information.",
+          "useCases": {
+            "projectListing": {
+              "description": "This schema is useful if you are trying to query information on projects. For example, if you are trying to compile a list of project names that you can use to build the Project catalog names.",
+              "example": "SELECT Name FROM [CData].[Information].Projects"
+            },
+            "sharedData": {
+              "description": "This schema is also useful if you need to retrieve data that is shared across all projects, like Agent Pools.",
+              "example": "SELECT * FROM [CData].[Information].AgentPools"
+            }
+          }
+        }
+      },
+      "projectCatalogs": {
+        "description": "Most data in Azure DevOps is related to a project. In the driver, each project is modeled in its own catalog, so the amount and names of the Project catalogs depend on how many projects are in your Azure DevOps organization.",
+        "namingConvention": "The names of these catalogs must be in either the format 'Project_projectId' or 'Project_projectName'. For example, to query data in a project named 'dev' with the Id '2ee729d6-804d-4ece-84af-d5befa94abe8', you can set the catalog to either Project_dev or Project_2ee729d6-804d-4ece-84af-d5befa94abe8.",
+        "projectSchema": {
+          "description": "The Project schema contains information on the project specified in the catalog name. It can be accessed by setting the schema to Project.",
+          "useCases": {
+            "projectSpecificData": {
+              "description": "Information such as Test Suites, Teams, Builds, and other items related to a project can be found here.",
+              "example": "SELECT * FROM [<catalog-name>].[Project].TestSuites"
+            },
+            "repositoryIds": {
+              "description": "It can also be used to retrieve a list of repository Ids, which can be used to construct the Repository schema names.",
+              "example": "SELECT Id FROM [<catalog-name>].[Project].Repositories"
+            },
+            "crossRepositoryData": {
+              "description": "It also contains information found in a project's repositories, sliced across all the repositories in the project. This allows you to query data across all repositories, but it is less performant than the Repository schemas.",
+              "example": "SELECT * FROM [<catalog-name>].[Project].PullRequests"
+            }
+          }
+        }
+      },
+      "repositorySchemas": {
+        "description": "Each repository is modeled in its own schema, which will be different depending on how many repositories are in a specified project.",
+        "namingConvention": "The names of these schemas must be in the format 'Repository_repositoryId'. For example, to query data in a repository with the Id '3ee729d6-804d-4ece-84af-d5befa94abe8', you can set the schema to Repository_3ee729d6-804d-4ece-84af-d5befa94abe8.",
+        "useCases": {
+          "singleRepositoryData": {
+            "description": "The Repository schema is useful when you are trying to query data in a single repository, such as pull requests, commits, and Git branches. While these tables are also available in the Project schema, it is more performant to use one of the Repository schemas as this does not require the data to be sliced across all repositories.",
+            "example": "SELECT * FROM [<catalog-name>].[Repository_d36a682e-db74-4bc1-b0c3-8929402ce829].PullRequests",
+            "performanceNote": "For example, if you are trying to query pull requests in repository 'd36a682e-db74-4bc1-b0c3-8929402ce829', it would be more performant to use the repository schema, as shown above."
+          }
+        }
+      },
+      "analyticsSchema": {
+        "description": "This is unique in that while all other schemas connect to REST endpoints, the Analytics schema connects to the OData Analytics service. It can be accessed by setting the schema to Analytics.",
+        "useCases": {
+          "projectAnalytics": {
+            "description": "It is useful for querying the analytics data for a project, such as analytics for teams or work items.",
+            "examples": [
+              "SELECT count(TeamId) as noOfTeams FROM [Project_dev].[Analytics].Teams",
+              "SELECT sum(CompletedWork) as SumOfCompletedWork, sum(RemainingWork) as SumOfRemainingWork FROM [Project_dev].[Analytics].WorkItems"
+            ]
+          }
+        }
+      }
+    },
+    "tableSpecifications": {
+      "AgentPools": {
+        "description": "Retrieves a list of agent pools.",
+        "location": "Available in the Information schema of the CData catalog",
+        "tableSpecificInformation": {
+          "select": {
+            "description": "The driver uses the Azure DevOps API to process WHERE clause conditions built with the following columns and operators:",
+            "supportedOperators": {
+              "Id": "supports the '=,in' operators",
+              "PoolType": "supports the '=' operator",
+              "Action": "supports the '=' operator",
+              "Properties": "supports the 'in' operator"
+            },
+            "note": "The rest of the filter is executed client-side in the driver.",
+            "examples": [
+              "SELECT * FROM AgentPools WHERE Id IN (1, 2, 3)",
+              "SELECT * FROM AgentPools WHERE Id = 9",
+              "SELECT * FROM AgentPools WHERE PoolType = 'deployment'",
+              "SELECT * FROM AgentPools WHERE Action = 'manage'"
+            ]
+          },
+          "insert": {
+            "description": "Examples of inserting into an AgentPools table:",
+            "examples": [
+              "INSERT INTO AgentPools (Name) VALUES ('PoolA')",
+              "INSERT INTO AgentPools (IsHosted, CreatedByDisplayName, AgentCloudId, Name) VALUES (false, 'Cdata', 1, 'Cdata_Ecity')"
+            ]
+          },
+          "update": {
+            "description": "Example of updating an AgentPools table:",
+            "examples": [
+              "UPDATE AgentPools SET Name = 'Data1' WHERE Id = 1"
+            ]
+          },
+          "delete": {
+            "description": "Example of deleting data in an AgentPools table:",
+            "examples": [
+              "DELETE FROM AgentPools WHERE Id = '1'"
+            ]
+          }
+        },
+        "columns": {
+          "Id": {
+            "type": "Integer",
+            "readOnly": true,
+            "isKey": true,
+            "description": "Id of the agent pool."
+          },
+          "AgentCloudId": {
+            "type": "Integer",
+            "readOnly": false,
+            "description": "The ID of the associated agent cloud."
+          },
+          "AutoProvision": {
+            "type": "Boolean",
+            "readOnly": false,
+            "description": "Whether or not a queue should be automatically provisioned for each project collection."
+          },
+          "AutoSize": {
+            "type": "Boolean",
+            "readOnly": false,
+            "description": "Whether or not the pool should autosize itself based on the agent cloud provider settings."
+          },
+          "AutoUpdate": {
+            "type": "Boolean",
+            "readOnly": false,
+            "description": "Whether or not a pool should be automatically updated."
+          },
+          "CreatedByDescriptor": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The descriptor is the primary way to reference the creator while the system is running."
+          },
+          "CreatedByDisplayName": {
+            "type": "String",
+            "readOnly": false,
+            "description": "This is the non-unique display name of the creator."
+          },
+          "CreatedById": {
+            "type": "String",
+            "readOnly": false,
+            "description": "Id of the creator."
+          },
+          "CreatedByUrl": {
+            "type": "String",
+            "readOnly": false,
+            "description": "Full http link to the creator."
+          },
+          "CreatedOn": {
+            "type": "Datetime",
+            "readOnly": false,
+            "description": "The date/time of the pool creation."
+          },
+          "IsHosted": {
+            "type": "Boolean",
+            "readOnly": false,
+            "description": "Indicates whether or not this pool is managed by the service."
+          },
+          "IsLegacy": {
+            "type": "Boolean",
+            "readOnly": false,
+            "description": "Determines whether the pool is legacy."
+          },
+          "Name": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The name of the agent pool."
+          },
+          "OwnerDescriptor": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The descriptor is the primary way to reference the owner while the system is running."
+          },
+          "OwnerDisplayName": {
+            "type": "String",
+            "readOnly": false,
+            "description": "This is the non-unique display name of the owner."
+          },
+          "OwnerId": {
+            "type": "String",
+            "readOnly": false,
+            "description": "Id of the owner."
+          },
+          "OwnerUrl": {
+            "type": "String",
+            "readOnly": false,
+            "description": "Full Http Link to the owner."
+          },
+          "PoolType": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The type of the pool.",
+            "allowedValues": ["automation", "deployment"]
+          },
+          "Properties": {
+            "type": "String",
+            "readOnly": false,
+            "description": "Represents a property bag as a collection of key-value pairs."
+          },
+          "Scope": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The scope of the pool."
+          },
+          "Size": {
+            "type": "Integer",
+            "readOnly": false,
+            "description": "The current size of the pool."
+          },
+          "TargetSize": {
+            "type": "Integer",
+            "readOnly": false,
+            "description": "Target parallelism."
+          }
+        },
+        "pseudoColumns": {
+          "Action": {
+            "type": "String",
+            "description": "Filter by whether the calling user has use or manage permissions.",
+            "allowedValues": ["manage", "none", "use"],
+            "note": "Pseudo column fields are used in the WHERE clause of SELECT statements, and offer a more granular control over the tuples that are returned from the data source. Unless otherwise specified, only the = operator is permitted when filtering on pseudocolumns."
+          }
+        }
+      },
+      "BuildDefinitions": {
+        "description": "Retrieves a list of build definitions, sliced across all projects.",
+        "location": "Available across all projects",
+        "tableSpecificInformation": {
+          "select": {
+            "description": "The driver uses the Azure DevOps API to process WHERE clause conditions built with the following columns and operators:",
+            "supportedOperators": {
+              "Id": "supports the '=,in' operators",
+              "ProjectId": "supports the '=' operator",
+              "Name": "supports the '=' operator",
+              "Path": "supports the '=' operator",
+              "ProcessType": "supports the '=' operator",
+              "ProcessYamlFileName": "supports the '=' operator",
+              "Properties": "supports the '=,in' operators",
+              "RepositoryId": "supports the '=' operator",
+              "RepositoryType": "supports the '=' operator",
+              "RevisionNum": "supports the '=' operator and filters the Revision column, but only when the Id is also specified",
+              "BuildDate": "supports the '<,<=,>,>=' operators",
+              "MinMetricsTime": "supports the '=' operator",
+              "IncludeLatestBuilds": "supports the '=' operator",
+              "TaskId": "supports the '=' operator",
+              "IncludeAllProperties": "supports the '=' operator"
+            },
+            "note": "The rest of the filter is executed client-side in the driver.",
+            "examples": [
+              "SELECT * FROM BuildDefinitions WHERE ProjectId = '837ccd31-8159-4db3-b8ce-de0c36d2a0bf'",
+              "SELECT * FROM BuildDefinitions WHERE ProjectId = '837ccd31-8159-4db3-b8ce-de0c36d2a0bf' AND Id IN (3, 4, 5)",
+              "SELECT * FROM BuildDefinitions WHERE ProjectId = '837ccd31-8159-4db3-b8ce-de0c36d2a0bf' AND Path = '\"'",
+              "SELECT * FROM BuildDefinitions WHERE Id = 298 AND RevisionNum = 1"
+            ]
+          },
+          "insert": {
+            "description": "Example of inserting into BuildDefinitions table:",
+            "examples": [
+              "INSERT INTO BuildDefinitions (Name, ProjectId, RepositoryType, ProcessYamlFilename, RepositoryId, Tags) VALUES (cdata, 'b154d8f3-bfd9-4bfb-90ae-2e6c8cda8937', TfsGit, 'data.txt', 'e50698d4-bb6e-400f-a1a0-5f4d17517d9e', '1, 2, 3')"
+            ]
+          },
+          "update": {
+            "description": "Example of updating a BuildDefinitions table:",
+            "examples": [
+              "UPDATE BuildDefinitions SET Name = 'Shubham1id', Revision = 1, RepositoryId = 'e50698d4-bb6e-400f-a1a0-5f4d17517d9e', RepositoryType = 'TfsGit', ProcessYamlFilename = 'data.txt' WHERE ProjectId = 'b154d8f3-bfd9-4bfb-90ae-2e6c8cda8937' AND Id = 4"
+            ]
+          },
+          "delete": {
+            "description": "Example of deleting data in a BuildDefinitions table:",
+            "examples": [
+              "DELETE FROM BuildDefinitions WHERE ProjectId = 'b154d8f3-bfd9-4bfb-90ae-2e6c8cda8937' AND Id = 4"
+            ]
+          }
+        },
+        "columns": {
+          "Id": {
+            "type": "Integer",
+            "readOnly": true,
+            "isKey": true,
+            "description": "Id of the build definition."
+          },
+          "Links": {
+            "type": "String",
+            "readOnly": true,
+            "description": "Aggregate of the reference links."
+          },
+          "AuthoredByDisplayName": {
+            "type": "String",
+            "readOnly": false,
+            "description": "This is the non-unique display name of the user."
+          },
+          "AuthoredById": {
+            "type": "String",
+            "readOnly": false,
+            "description": "Id of the user."
+          },
+          "AuthoredByUrl": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The URL Of the user."
+          },
+          "BadgeEnabled": {
+            "type": "Boolean",
+            "readOnly": false,
+            "description": "Indicates whether the badge is enabled."
+          },
+          "CreatedDate": {
+            "type": "Datetime",
+            "readOnly": false,
+            "description": "The date this version of the definition was created."
+          },
+          "Name": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The name of the referenced definition."
+          },
+          "Path": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The folder path of the definition."
+          },
+          "ProcessType": {
+            "type": "Integer",
+            "readOnly": false,
+            "description": "The process type. Only available if the filter IncludeAllProperties=true is set."
+          },
+          "ProcessYamlFilename": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The process YAML file name. Only available if the filter IncludeAllProperties=true is set."
+          },
+          "ProjectId": {
+            "type": "String",
+            "readOnly": false,
+            "references": "Projects.Id",
+            "description": "Project identifier."
+          },
+          "Properties": {
+            "type": "String",
+            "readOnly": false,
+            "description": "Properties of the build definition. Only available if the filter IncludeAllProperties=true is set."
+          },
+          "Quality": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The quality of the definition document (draft, etc.)."
+          },
+          "QueueId": {
+            "type": "Integer",
+            "readOnly": false,
+            "description": "The ID of the queue."
+          },
+          "QueueName": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The name of the queue."
+          },
+          "QueueStatus": {
+            "type": "String",
+            "readOnly": false,
+            "description": "A value that indicates whether builds can be queued against this definition."
+          },
+          "RepositoryId": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The ID of the repository. Only available if the filter IncludeAllProperties=true is set."
+          },
+          "RepositoryType": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The type of the repository. Only available if the filter IncludeAllProperties=true is set."
+          },
+          "Revision": {
+            "type": "Integer",
+            "readOnly": false,
+            "description": "The definition revision number."
+          },
+          "Tags": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The tags associated with this definition. Only available if the filter IncludeAllProperties=true is set."
+          },
+          "Type": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The type of the definition."
+          },
+          "Uri": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The definition's URI."
+          },
+          "Url": {
+            "type": "String",
+            "readOnly": false,
+            "description": "The REST URL of the definition."
+          }
+        },
+        "pseudoColumns": {
+          "RevisionNum": {
+            "type": "Integer",
+            "description": "The definition revision number, tied to the Revision. This filter is ignored if the Id is not specified.",
+            "note": "Only works when Id is also specified"
+          },
+          "BuildDate": {
+            "type": "Datetime",
+            "description": "If specified, filters to definitions that have builds before or after this date.",
+            "supportedOperators": "<,<=,>,>="
+          },
+          "MinMetricsTime": {
+            "type": "Datetime",
+            "description": "If specified, indicates the date from which metrics should be included."
+          },
+          "IncludeLatestBuilds": {
+            "type": "Boolean",
+            "description": "Indicates whether latest builds should be included."
+          },
+          "TaskId": {
+            "type": "String",
+            "description": "If specified, filters to definitions that use the specified task."
+          },
+          "IncludeAllProperties": {
+            "type": "Boolean",
+            "description": "Indicates whether the full definitions should be returned."
+          }
+        }
+      },
+      "GroupMembers": {
+        "description": "Get direct members of a group.",
+        "location": "Available for group management operations",
+        "tableSpecificInformation": {
+          "select": {
+            "description": "Retrieves direct members of a specified group. Requires GroupId to identify the target group.",
+            "keyColumns": ["Id", "GroupId"],
+            "note": "Most columns are read-only as they represent system-generated user and license information."
+          }
+        },
+        "columns": {
+          "Id": {
+            "type": "String",
+            "readOnly": false,
+            "isKey": true,
+            "description": "Unique identifier of the group member."
+          },
+          "GroupId": {
+            "type": "String",
+            "readOnly": false,
+            "isKey": true,
+            "references": "Groups.OriginId",
+            "description": "OriginId of the group."
+          },
+          "DateCreated": {
+            "type": "Datetime",
+            "readOnly": true,
+            "description": "Date the user was added to the collection."
+          },
+          "LastAccessedDate": {
+            "type": "Datetime",
+            "readOnly": true,
+            "description": "Date the user last accessed the collection."
+          },
+          "AccountLicenseType": {
+            "type": "String",
+            "readOnly": true,
+            "description": "Type of Account License."
+          },
+          "AssignmentSource": {
+            "type": "String",
+            "readOnly": true,
+            "description": "Assignment Source of the License."
+          },
+          "GitHubLicenseType": {
+            "type": "String",
+            "readOnly": true,
+            "description": "GitHub license type."
+          },
+          "LicenseDisplayName": {
+            "type": "String",
+            "readOnly": true,
+            "description": "Display name of the License."
+          },
+          "LicensingSource": {
+            "type": "String",
+            "readOnly": true,
+            "description": "Licensing Source."
+          },
+          "MsdnLicenseType": {
+            "type": "String",
+            "readOnly": true,
+            "description": "Type of MSDN License."
+          },
+          "AccessLevelStatus": {
+            "type": "String",
+            "readOnly": true,
+            "description": "User status in the account."
+          },
+          "AccessLevelStatusMessage": {
+            "type": "String",
+            "readOnly": true,
+            "description": "Status message."
+          },
+          "UserDescriptor": {
+            "type": "String",
+            "readOnly": true,
+            "description": "The primary way to reference the graph subject while the system is running."
+          },
+          "UserDirectoryAlias": {
+            "type": "String",
+            "readOnly": true,
+            "description": "The short, generally unique name for the user in the backing directory."
+          },
+          "UserDisplayName": {
+            "type": "String",
+            "readOnly": true,
+            "description": "The non-unique display name of the graph subject."
+          },
+          "UserDomain": {
+            "type": "String",
+            "readOnly": true,
+            "description": "The name of the container of origin for a graph member."
+          },
+          "UserMailAddress": {
+            "type": "String",
+            "readOnly": true,
+            "description": "The email address of record for a given graph member."
+          },
+          "UserMetaType": {
+            "type": "String",
+            "readOnly": true,
+            "description": "The meta type of the user in the origin, such as 'member', 'guest', etc."
+          },
+          "UserOrigin": {
+            "type": "String",
+            "readOnly": true,
+            "description": "The type of source provider for the origin identifier (ex:AD, AAD, MSA)."
+          },
+          "UserOriginId": {
+            "type": "String",
+            "readOnly": true,
+            "description": "The unique identifier from the system of origin. Typically a sid, object id or Guid."
+          },
+          "UserPrincipalName": {
+            "type": "String",
+            "readOnly": true,
+            "description": "PrincipalName of this graph member from the source provider."
+          },
+          "UserSubjectKind": {
+            "type": "String",
+            "readOnly": true,
+            "description": "This field identifies the type of the graph subject (ex: Group, Scope, User)."
+          },
+          "UserUrl": {
+            "type": "String",
+            "readOnly": true,
+            "description": "This url is the full route to the source resource of this graph subject."
+          },
+          "Extensions": {
+            "type": "String",
+            "readOnly": true,
+            "description": "Extensions."
+          },
+          "GroupAssignments": {
+            "type": "String",
+            "readOnly": true,
+            "description": "GroupEntitlements that this user belongs to."
+          },
+          "ProjectEntitlements": {
+            "type": "String",
+            "readOnly": true,
+            "description": "Relation between a project and the member's effective permissions in that project."
+          }
+        }
+      }
+        ,
+        "Projects": {
+          "description": "Get all projects in the organization that the authenticated user has access to and details of the specific project.",
+          "location": "Organization-wide, accessible via Information schema.",
+          "tableSpecificInformation": {
+            "select": {
+              "description": "The driver uses the Azure DevOps API to process WHERE clause conditions built with the following columns and operators:",
+              "supportedOperators": {
+                "Id": "supports the '=' operator.",
+                "State": "supports the '=' operator. If the Id is also specified, this filter must be processed client-side."
+              },
+              "note": "The rest of the filter is executed client-side in the driver.",
+              "examples": [
+                "SELECT * FROM Projects WHERE Id = '837ccd31-8159-4db3-b8ce-de0c36d2a0bf'",
+                "SELECT * FROM Projects WHERE State = 'new'"
+              ]
+            },
+            "insert": {
+              "description": "Example of inserting into the Projects table:",
+              "examples": [
+                "INSERT INTO Projects (Name, description, visibility, CapabilitiesVersionControlType, CapabilitiesProcessTemplateTypeId) VALUES ('cdata','demo project', 'private', 'Git', '6b724908-ef14-45cf-84f8-768b5384da45')"
+              ]
+            },
+            "update": {
+              "description": "Example of updating the Projects table:",
+              "examples": [
+                "UPDATE Projects SET name='Cdata' where Id='b154d8f3-bfd9-4bfb-90ae-2e6c8cda8937'"
+              ]
+            },
+            "delete": {
+              "description": "Example of deleting from the Projects table:",
+              "examples": [
+                "DELETE FROM Projects WHERE Id = 'b154d8f3-bfd9-4bfb-90ae-2e6c8cda8937'"
+              ]
+            }
+          },
+          "columns": {
+            "Id": {"type": "String", "readOnly": true, "isKey": true, "description": "Unique identifier of the project."},
+            "CapabilitiesProcessTemplateName": {"type": "String", "readOnly": false, "description": "Process template capabilities this project has."},
+            "CapabilitiesProcessTemplateTypeId": {"type": "String", "readOnly": false, "description": "Process template capabilities this project has."},
+            "CapabilitiesVersionControlType": {"type": "String", "readOnly": false, "description": "Version control capabilities this project has."},
+            "CapabilitiesVersionControlGitEnabled": {"type": "Boolean", "readOnly": false, "description": "Version control capabilities this project has."},
+            "CapabilitiesVersionControlTfvcEnabled": {"type": "Boolean", "readOnly": false, "description": "Version control capabilities this project has."},
+            "DefaultTeamId": {"type": "String", "readOnly": false, "description": "Team (identity) GUID."},
+            "DefaultTeamName": {"type": "String", "readOnly": false, "description": "The name of the default team."},
+            "DefaultTeamUrl": {"type": "String", "readOnly": false, "description": "The URL of the team."},
+            "DefaultTeamImageUrl": {"type": "String", "readOnly": false, "description": "URL to default team identity image."},
+            "Description": {"type": "String", "readOnly": false, "description": "The description of the project."},
+            "LastUpdateTime": {"type": "Datetime", "readOnly": false, "description": "The timestamp at which the project was last updated."},
+            "Links": {"type": "String", "readOnly": true, "description": "Aggregate of the reference links."},
+            "Name": {"type": "String", "readOnly": false, "description": "The name of the project."},
+            "Revision": {"type": "Integer", "readOnly": false, "description": "The revision of the project."},
+            "State": {"type": "String", "readOnly": false, "description": "The current state of the project."},
+            "Url": {"type": "String", "readOnly": false, "description": "URL to the full version of the object."},
+            "Visibility": {"type": "String", "readOnly": false, "description": "Indicates whom the project is visible to."}
+          },
+          "pseudoColumns": {
+            "GetDefaultTeamImageUrl": {"type": "Boolean", "description": "If set, returns of the default team image URL."},
+            "IncludeCapabilities": {"type": "Boolean", "description": "Include capabilities (such as source control) in the team project result (default: false)"}
+          }
+        }
+          ,
+          "Users": {
+            "description": "Retrieves a list of users. This table will not retrieve results for the On-premise edition.",
+            "location": "Organization-wide user listing.",
+            "tableSpecificInformation": {
+              "select": {
+                "description": "The driver uses the Azure DevOps API to process WHERE clause conditions built with the following columns and operators:",
+                "supportedOperators": {
+                  "Id": "supports the '=' operator."
+                },
+                "note": "The rest of the filter is executed client-side in the driver.",
+                "examples": [
+                  "SELECT * FROM Users WHERE Id = 'c774bab2-7c43-65da-8ae4-be3ca4519257'"
+                ]
+              },
+              "insert": {
+                "description": "When performing an Insert, the following fields are required: UserPrincipalName, UserOriginID, AccessLevelAccountLicenseType",
+                "examples": [
+                  "INSERT INTO Users (UserDisplayName, UserPrincipalName, UserOriginID, AccessLevelAccountLicenseType, UserSubjectKind) VALUES ('Anirudh', 'sample@mail.com', '000300003732A094', 'express', 'user')"
+                ]
+              },
+              "update": {
+                "description": "Updates are not supported for this table. However, they can be performed through the UpdateUser stored procedure."
+              },
+              "delete": {
+                "description": "Due to the fact that there is no way to distinguish between the API response for a successful and a failed DELETE for this table, the affected row count is always -1.",
+                "examples": [
+                  "DELETE FROM Users WHERE Id = '7342ddfe-abc9-4884-9fbf-773be61e2c92'"
+                ]
+              }
+            },
+            "columns": {
+              "Id": {"type": "String", "readOnly": true, "isKey": true, "description": "Id of the User."},
+              "AccessLevelAccountLicenseType": {"type": "String", "readOnly": false, "description": "Type of Account License (e.g. Express, Stakeholder etc.)."},
+              "AccessLevelAssignmentSource": {"type": "String", "readOnly": false, "description": "Assignment Source of the License (e.g. Group, Unknown etc.)."},
+              "AccessLevelLicenseDisplayName": {"type": "String", "readOnly": false, "description": "Display name of the license."},
+              "AccessLevelLicensingSource": {"type": "String", "readOnly": false, "description": "Licensing Source (e.g. Account. MSDN etc.)."},
+              "AccessLevelMSDNLicenseType": {"type": "String", "readOnly": false, "description": "Type of MSDN License (e.g. Visual Studio Professional, Visual Studio Enterprise etc.)."},
+              "AccessLevelStatus": {"type": "String", "readOnly": false, "description": "User status in the account."},
+              "AccessLevelStatusMessage": {"type": "String", "readOnly": false, "description": "Status message."},
+              "DateCreated": {"type": "Datetime", "readOnly": true, "description": "Date the user was added to the collection."},
+              "LastAccessedDate": {"type": "Datetime", "readOnly": true, "description": "Date the user last accessed the collection."},
+              "UserDescriptor": {"type": "String", "readOnly": false, "description": "The descriptor is the primary way to reference the user while the system is running."},
+              "UserDirectoryAlias": {"type": "String", "readOnly": false, "description": "The short, generally unique name for the user in the backing directory."},
+              "UserDisplayName": {"type": "String", "readOnly": false, "description": "This is the non-unique display name of the graph subject."},
+              "UserDomain": {"type": "String", "readOnly": false, "description": "This represents the name of the container of origin for a graph member."},
+              "UserMailAddress": {"type": "String", "readOnly": false, "description": "The email address of record for a given graph member."},
+              "UserMetaType": {"type": "String", "readOnly": false, "description": "The meta type of the user in the origin, such as 'member', 'guest', etc."},
+              "UserOrigin": {"type": "String", "readOnly": false, "description": "The type of source provider for the origin identifier (ex:AD, AAD, MSA)."},
+              "UserOriginId": {"type": "String", "readOnly": false, "description": "The unique identifier from the system of origin."},
+              "UserPrincipalName": {"type": "String", "readOnly": false, "description": "This is the PrincipalName of this graph member from the source provider."},
+              "UserSubjectKind": {"type": "String", "readOnly": false, "description": "This field identifies the type of the graph subject."},
+              "UserUrl": {"type": "String", "readOnly": false, "description": "This url is the full route to the source resource of this graph subject."}
+            }
+          }
+        ,
+        "AccessControlLists": {
+          "description": "Return a list of access control lists for the specified security namespace.",
+          "location": "Security namespace level.",
+          "columns": {
+            "NamespaceId": {"type": "String", "references": "SecurityNamespaces.Id", "description": "Id of the namespace."},
+            "InheritPermissions": {"type": "Boolean", "description": "True if the given token inherits permissions from parents."},
+            "Token": {"type": "String", "description": "The token that this AccessControlList is for."},
+            "AcesDictionary": {"type": "String", "description": "Storage of permissions keyed on the identity the permission is for."}
+          },
+          "pseudoColumns": {
+            "Descriptors": {"type": "String", "description": "An optional filter containing a list of identity descriptors separated by ',' whose ACEs should be retrieved. If not specified, entire ACLs will be returned."},
+            "IncludeExtendedInfo": {"type": "Boolean", "description": "If true, populate the extended information properties for the access control entries contained in the returned lists."},
+            "Recurse": {"type": "String", "description": "If true and this is a hierarchical namespace, return child ACLs of the specified token."}
+          }
+        },
+        "AuditLogEntries": {
+          "description": "Retrieves all audit log entries. This table includes custom fields which are automatically discovered when 'IncludeCustomFields' is enabled.",
+          "location": "Organization-wide audit log.",
+          "tableSpecificInformation": {
+            "select": {
+              "description": "The driver uses the Azure DevOps API to process WHERE clause conditions built with the following columns and operators:",
+              "supportedOperators": {
+                "BatchSize": "supports the '=' operator.",
+                "DownloadWindow": "supports the '>,>=,<,<=' operators.",
+                "SkipAggregation": "supports the '=' operator."
+              },
+              "note": "The rest of the filter is executed client-side in the driver.",
+              "examples": [
+                "SELECT * FROM AuditLogEntries WHERE BatchSize = 5",
+                "SELECT * FROM AuditLogEntries WHERE DownloadWindow > '2020-04-06 05:50:00' AND DownloadWindow < '2020-04-06T06:50:00.000+00:00'"
+              ]
+            }
+          },
+          "columns": {
+            "Id": {"type": "String", "isKey": true, "description": "Id of the audit log entry."},
+            "ActionId": {"type": "String", "description": "The action if for the event, i.e Git.CreateRepo, Project.RenameProject."},
+            "ActivityId": {"type": "String", "description": "Id of the activity."},
+            "ActorCUID": {"type": "String", "description": "The actor's CUID."},
+            "ActorDisplayName": {"type": "String", "description": "DisplayName of the user who initiated the action."},
+            "ActorImageUrl": {"type": "String", "description": "URL of actor's profile image."},
+            "ActorUserId": {"type": "String", "description": "The actor's user Id."},
+            "Area": {"type": "String", "description": "Area of Azure DevOps the action occurred."},
+            "AuthenticationMechanism": {"type": "String", "description": "Type of authentication used by the actor."},
+            "Category": {"type": "String", "description": "Type of action executed."},
+            "CategoryDisplayName": {"type": "String", "description": "DisplayName of the category."},
+            "CorrelationId": {"type": "String", "description": "This allows related audit entries to be grouped together. Generally this occurs when a single action causes a cascade of audit entries. For example, project creation."},
+            "Details": {"type": "String", "description": "Decorated details."},
+            "IpAddress": {"type": "String", "description": "IP Address where the event was originated."},
+            "ScopeDisplayName": {"type": "String", "description": "Display Name of the scope."},
+            "ScopeId": {"type": "String", "description": "The organization or project Id."},
+            "ScopeType": {"type": "String", "description": "The type of the scope, organization or project."},
+            "Timestamp": {"type": "Datetime", "description": "The time when the event occurred in UTC."},
+            "UserAgent": {"type": "String", "description": "The user agent from the request."},
+            "Data": {"type": "String", "description": "External data such as CUIDs, item names, etc."}
+          },
+          "pseudoColumns": {
+            "BatchSize": {"type": "Integer", "description": "Max number of results to return."},
+            "DownloadWindow": {"type": "Datetime", "description": "Start and end time of download window."},
+            "SkipAggregation": {"type": "Boolean", "description": "Skips aggregating events and leaves them as individual entries instead."}
+          }
+        },
+        "GroupMemberships": {
+          "description": "Get the members (MemberDescriptor) of a group (ContainerDescriptor).",
+          "location": "Group membership relationships.",
+          "columns": {
+            "ContainerDescriptor": {"type": "String", "isKey": true, "references": "Groups.Descriptor", "description": "A descriptor to the container in the relationship. This is equivalent to the GroupDescriptor."},
+            "MemberDescriptor": {"type": "String", "isKey": true, "references": "Users.UserDescriptor", "description": "Subject descriptor for which to fetch all direct memberships. This is equivalent to the UserDescriptor."}
+          }
+        },
+        "PullRequests": {
+          "description": "Retrieves pull requests from Azure DevOps repositories. Available in both Project-level and Repository-specific schemas.",
+          "location": "Available in [Project_<name>].[Project].PullRequests (cross-repository) and [Project_<name>].[Repository_<id>].PullRequests (single repository, more performant)",
+          "tableSpecificInformation": {
+            "select": {
+              "description": "The driver uses the Azure DevOps API to process WHERE clause conditions built with the following columns and operators:",
+              "supportedOperators": {
+                "Id": "supports the '=,in' operators",
+                "ProjectId": "supports the '=' operator",
+                "RepositoryId": "supports the '=' operator",
+                "Status": "supports the '=' operator (active, completed, abandoned)",
+                "CreatedById": "supports the '=' operator",
+                "CreatedDate": "supports the '<,<=,>,>=' operators",
+                "ClosedDate": "supports the '<,<=,>,>=' operators",
+                "SourceRefName": "supports the '=' operator",
+                "TargetRefName": "supports the '=' operator"
+              },
+              "note": "The rest of the filter is executed client-side in the driver. Repository-specific schema is more performant than project-level schema for single repository queries.",
+              "examples": [
+                "SELECT * FROM [Project_MyProject].[Repository_abc123].[PullRequests] WHERE [Status] = 'active'",
+                "SELECT * FROM [Project_MyProject].[Repository_abc123].[PullRequests] WHERE [CreatedDate] >= DATEADD(month, -3, GETDATE())",
+                "SELECT * FROM [Project_MyProject].[Repository_abc123].[PullRequests] WHERE [CreatedById] = 'user-guid'",
+                "SELECT * FROM [Project_MyProject].[Project].[PullRequests] WHERE [ProjectId] = 'project-guid'"
+              ]
+            }
+          },
+          "columns": {
+            "Id": {"type": "Integer", "readOnly": true, "isKey": true, "description": "Unique identifier of the pull request."},
+            "ProjectId": {"type": "String", "readOnly": true, "description": "Identifier of the project containing the pull request."},
+            "RepositoryId": {"type": "String", "readOnly": true, "description": "Identifier of the repository containing the pull request."},
+            "Title": {"type": "String", "readOnly": false, "description": "Title of the pull request."},
+            "Description": {"type": "String", "readOnly": false, "description": "Description of the pull request."},
+            "Status": {"type": "String", "readOnly": true, "description": "Status of the pull request (active, completed, abandoned)."},
+            "CreatedById": {"type": "String", "readOnly": true, "references": "Users.Id", "description": "Unique identifier of the user who created the pull request."},
+            "CreatedByDisplayName": {"type": "String", "readOnly": true, "description": "Display name of the user who created the pull request."},
+            "CreatedByEmail": {"type": "String", "readOnly": true, "description": "Email address of the user who created the pull request."},
+            "CreatedDate": {"type": "Datetime", "readOnly": true, "description": "Date and time when the pull request was created."},
+            "CreationDate": {"type": "Datetime", "readOnly": true, "description": "Alternative field name for creation date."},
+            "ClosedById": {"type": "String", "readOnly": true, "references": "Users.Id", "description": "Unique identifier of the user who closed/completed the pull request."},
+            "ClosedByDisplayName": {"type": "String", "readOnly": true, "description": "Display name of the user who closed/completed the pull request."},
+            "ClosedDate": {"type": "Datetime", "readOnly": true, "description": "Date and time when the pull request was closed/completed."},
+            "SourceRefName": {"type": "String", "readOnly": true, "description": "Name of the source branch (refs/heads/branch-name)."},
+            "TargetRefName": {"type": "String", "readOnly": true, "description": "Name of the target branch (refs/heads/branch-name)."},
+            "MergeId": {"type": "String", "readOnly": true, "description": "Identifier of the merge commit."},
+            "MergeStatus": {"type": "String", "readOnly": true, "description": "Status of the merge (succeeded, failed, conflicts, etc.)."},
+            "LastMergeSourceCommit": {"type": "String", "readOnly": true, "description": "SHA of the last commit from the source branch that was merged."},
+            "LastMergeTargetCommit": {"type": "String", "readOnly": true, "description": "SHA of the target branch commit at the time of merge."},
+            "Url": {"type": "String", "readOnly": true, "description": "REST API URL of the pull request."},
+            "WebUrl": {"type": "String", "readOnly": true, "description": "Web UI URL of the pull request."},
+            "IsDraft": {"type": "Boolean", "readOnly": true, "description": "Whether the pull request is in draft status."},
+            "ReviewerCount": {"type": "Integer", "readOnly": true, "description": "Number of reviewers assigned to the pull request."},
+            "ApprovedCount": {"type": "Integer", "readOnly": true, "description": "Number of approved reviews."},
+            "RejectedCount": {"type": "Integer", "readOnly": true, "description": "Number of rejected reviews."}
+          },
+          "bestPractices": [
+            "Use Repository-specific schema for better performance when querying single repository: [Project_<name>].[Repository_<id>].[PullRequests]",
+            "Use Project-level schema only when you need data across all repositories: [Project_<name>].[Project].[PullRequests]",
+            "Apply time filters using CreatedDate or ClosedDate to improve query performance",
+            "Use Status filter to focus on specific pull request states",
+            "Group by CreatedByDisplayName for developer activity analysis",
+            "Consider using LIMIT clause for large result sets"
+          ],
+          "commonAnalysisQueries": [
+            "-- Developer activity by pull request count\nSELECT [CreatedByDisplayName], COUNT(*) as PRCount FROM [Project_<name>].[Repository_<id>].[PullRequests] WHERE [CreatedDate] >= DATEADD(month, -3, GETDATE()) GROUP BY [CreatedByDisplayName] ORDER BY COUNT(*) DESC",
+            "-- Pull requests by status distribution\nSELECT [Status], COUNT(*) as Count FROM [Project_<name>].[Repository_<id>].[PullRequests] GROUP BY [Status]",
+            "-- Average time to close pull requests\nSELECT AVG(DATEDIFF(day, [CreatedDate], [ClosedDate])) as AvgDaysToClose FROM [Project_<name>].[Repository_<id>].[PullRequests] WHERE [Status] = 'completed'",
+            "-- Most active branches by pull requests\nSELECT [SourceRefName], COUNT(*) as PRCount FROM [Project_<name>].[Repository_<id>].[PullRequests] GROUP BY [SourceRefName] ORDER BY COUNT(*) DESC"
+          ]
+        }
+    },
+    "commonQueryPatterns": {
+      "timeBasedFiltering": {
+        "description": "For queries involving past X months/days",
+        "examples": [
+          "-- For the past 3 months\nWHERE [CreatedDate] >= DATEADD(month, -3, GETDATE())",
+          "-- For the past 30 days\nWHERE [CreatedDate] >= DATEADD(day, -30, GETDATE())"
+        ]
+      },
+      "pullRequestAnalysis": {
+        "description": "Get PR creators with counts",
+        "query": "SELECT \n    [CreatedByDisplayName] as Developer,\n    COUNT(*) as PullRequestCount\nFROM [Project_<project-name>].[Repository_<repo-id>].[PullRequests]\nWHERE [CreatedDate] >= DATEADD(month, -3, GETDATE())\nGROUP BY [CreatedByDisplayName]\nORDER BY COUNT(*) ASC\nLIMIT 10"
+      },
+      "userInformationQueries": {
+        "description": "Check for detailed user information in Analytics schema",
+        "query": "SELECT * FROM [Project_<project-name>].[Analytics].[Users]"
+      }
+    },
+    "recommendedWorkflow": {
+      "developerActivityReports": [
+        "Use get_catalogs tool to discover available catalog names",
+        "Identify Project and Repository using the catalog name from step above",
+        "Check tableSpecifications in these instructions for detailed table information (PullRequests, AgentPools, BuildDefinitions, etc.) - no need to call get_columns for these tables",
+        "For tables not in tableSpecifications, explore available tables using the get_tables tool and get_columns tool",
+        "Build the query with appropriate time filters and grouping using provided column specifications",
+        "Test with a simple query first, then add complexity",
+        "Handle edge cases (null values, deleted users, etc.)"
+      ],
+      "workItemAnalysis": [
+        "Use get_catalogs tool to discover available catalog names",
+        "Identify Project using the catalog name from step above",
+        "Query Analytics schema for WorkItems table",
+        "Join with Users/Areas/Iterations as needed",
+        "Apply filters for time periods, work item types, etc."
+      ]
+    },
+    "importantColumnNames": {
+      "agentPoolsTable": {
+        "Id": "Agent pool ID (primary key)",
+        "Name": "Agent pool name",
+        "PoolType": "Pool type (automation, deployment)",
+        "IsHosted": "Whether pool is managed by the service",
+        "CreatedByDisplayName": "Creator display name",
+        "CreatedOn": "Pool creation date/time",
+        "Size": "Current pool size",
+        "TargetSize": "Target parallelism"
+      },
+      "buildDefinitionsTable": {
+        "Id": "Build definition ID (primary key)",
+        "Name": "Build definition name",
+        "ProjectId": "Project identifier",
+        "Path": "Folder path of the definition",
+        "CreatedDate": "Definition creation date",
+        "AuthoredByDisplayName": "Definition author display name",
+        "QueueName": "Queue name for builds",
+        "RepositoryId": "Repository ID",
+        "RepositoryType": "Repository type (TfsGit, etc.)",
+        "ProcessYamlFilename": "YAML file name for the process",
+        "Tags": "Associated tags"
+      },
+      "groupMembersTable": {
+        "Id": "Group member ID (primary key)",
+        "GroupId": "Group ID (primary key, references Groups.OriginId)",
+        "UserDisplayName": "Member display name",
+        "UserMailAddress": "Member email address",
+        "UserPrincipalName": "Member principal name",
+        "DateCreated": "Date user was added to collection",
+        "LastAccessedDate": "Date user last accessed collection",
+        "AccessLevelStatus": "User status in account",
+        "AccountLicenseType": "Type of account license",
+        "UserOrigin": "Source provider type (AD, AAD, MSA)",
+        "UserMetaType": "User type (member, guest, etc.)",
+        "GroupAssignments": "Other groups this user belongs to",
+        "ProjectEntitlements": "Project permissions for this member"
+      },
+        "projectsTable": {
+          "Id": "Project ID (primary key)",
+          "Name": "Project name",
+          "Description": "Project description",
+          "State": "Current state of the project",
+          "Visibility": "Project visibility",
+          "DefaultTeamName": "Default team name",
+          "DefaultTeamId": "Default team GUID",
+          "DefaultTeamUrl": "Default team URL",
+          "DefaultTeamImageUrl": "Default team image URL",
+          "CapabilitiesVersionControlType": "Version control type",
+          "CapabilitiesProcessTemplateName": "Process template name",
+          "LastUpdateTime": "Last update timestamp"
+        },
+          "usersTable": {
+            "Id": "User ID (primary key)",
+            "UserDisplayName": "User display name",
+            "UserPrincipalName": "Principal name from source provider",
+            "UserMailAddress": "User email address",
+            "UserOriginId": "Unique identifier from origin system",
+            "UserOrigin": "Source provider type (AD, AAD, MSA)",
+            "AccessLevelAccountLicenseType": "Type of account license",
+            "AccessLevelAssignmentSource": "Assignment source of license",
+            "AccessLevelLicenseDisplayName": "License display name",
+            "AccessLevelStatus": "User status in account",
+            "DateCreated": "Date user was added",
+            "LastAccessedDate": "Date user last accessed"
+          },
+            "accessControlListsTable": {
+              "NamespaceId": "Security namespace ID (references SecurityNamespaces.Id)",
+              "InheritPermissions": "True if token inherits permissions from parents",
+              "Token": "Token for the ACL",
+              "AcesDictionary": "Permissions keyed on identity"
+            },
+            "auditLogEntriesTable": {
+              "Id": "Audit log entry ID (primary key)",
+              "ActionId": "Action/event type",
+              "ActorDisplayName": "User who initiated the action",
+              "Area": "Area of Azure DevOps",
+              "Timestamp": "Event timestamp",
+              "ScopeId": "Organization or project ID",
+              "Category": "Type of action executed",
+              "IpAddress": "Originating IP address"
+            },
+            "groupMembershipsTable": {
+              "ContainerDescriptor": "Group descriptor (primary key, references Groups.Descriptor)",
+              "MemberDescriptor": "User descriptor (primary key, references Users.UserDescriptor)"
+            },
+              "groupsTable": {
+                "Descriptor": "Group descriptor (primary key)",
+                "DisplayName": "Group display name",
+                "Description": "Group description",
+                "Domain": "Container of origin",
+                "MailAddress": "Group email address",
+                "Origin": "Source provider type",
+                "OriginId": "Unique identifier from origin system",
+                "PrincipalName": "Principal name from source provider",
+                "SubjectKind": "Type of graph subject",
+                "Url": "Resource URL"
+              },
+              "identitiesTable": {
+                "Id": "Identity ID (primary key)",
+                "Descriptor": "Identity descriptor",
+                "SubjectDescriptor": "Subject descriptor",
+                "ProviderDisplayName": "Provider display name",
+                "IsActive": "Is active in any group",
+                "IsContainer": "Is a group",
+                "MemberIds": "Member IDs (groups only)",
+                "MetaTypeId": "Meta type ID",
+                "ResourceVersion": "Resource version"
+              },
+              "projectPropertiesTable": {
+                "ProjectId": "Project ID (references Projects.Id)",
+                "Name": "Property name",
+                "Value": "Property value"
+              },
+              "securityNamespaceActionsTable": {
+                "NamespaceId": "Namespace ID (primary key, references SecurityNamespaces.Id)",
+                "Bit": "Bit mask integer (primary key)",
+                "DisplayName": "Action display name",
+                "Name": "Action name"
+              },
+              "securityNamespacesTable": {
+                "Id": "Namespace ID (primary key)",
+                "DisplayName": "Namespace display name",
+                "DataspaceCategory": "Dataspace category",
+                "ElementLength": "Element length",
+                "ExtensionType": "Extension type",
+                "IsRemotable": "Is remotable",
+                "Name": "Namespace name",
+                "ReadPermission": "Read permission bits",
+                "SeparatorValue": "Separator value",
+                "StructureValue": "Structure value",
+                "SystemBitMask": "System bit mask",
+                "UseTokenTranslator": "Uses token translator",
+                "WritePermission": "Write permission bits"
+              },
+              "userMembershipsTable": {
+                "ContainerDescriptor": "Group descriptor (primary key, references Groups.Descriptor)",
+                "MemberDescriptor": "User descriptor (primary key, references Users.UserDescriptor)"
+              },
+      "pullRequestsTable": {
+        "Id": "Pull request ID (primary key)",
+        "ProjectId": "Project identifier",
+        "RepositoryId": "Repository identifier", 
+        "Title": "Pull request title",
+        "Description": "Pull request description",
+        "Status": "PR status (active, completed, abandoned)",
+        "CreatedById": "PR creator ID (references Users.Id)",
+        "CreatedByDisplayName": "PR creator display name",
+        "CreatedByEmail": "PR creator email address",
+        "CreatedDate": "When PR was created (use for time filtering)",
+        "CreationDate": "Alternative creation date field",
+        "ClosedById": "PR closer ID (references Users.Id)",
+        "ClosedByDisplayName": "PR closer display name", 
+        "ClosedDate": "When PR was completed/merged",
+        "SourceRefName": "Source branch name (refs/heads/branch-name)",
+        "TargetRefName": "Target branch name (refs/heads/branch-name)",
+        "MergeId": "Merge commit identifier",
+        "MergeStatus": "Merge status (succeeded, failed, conflicts)",
+        "LastMergeSourceCommit": "Last source commit SHA merged",
+        "LastMergeTargetCommit": "Target commit SHA at merge time",
+        "Url": "REST API URL of the pull request",
+        "WebUrl": "Web UI URL of the pull request",
+        "IsDraft": "Whether PR is in draft status",
+        "ReviewerCount": "Number of assigned reviewers",
+        "ApprovedCount": "Number of approved reviews",
+        "RejectedCount": "Number of rejected reviews"
+      },
+      "commitsTable": {
+        "AuthorEmail": "Commit author email",
+        "AuthorName": "Commit author name",
+        "AuthorDate": "Commit timestamp",
+        "CommitterDate": "Commit timestamp alternative",
+        "Comment": "Commit message"
+      },
+      "workItemsTable": {
+        "AssignedToId": "Work item assignee ID",
+        "AssignedToDisplayName": "Work item assignee display name",
+        "CreatedById": "Work item creator ID",
+        "CreatedByDisplayName": "Work item creator display name",
+        "State": "Work item status",
+        "Type": "Bug, User Story, Task, etc."
+      }
     },
     "queryPatterns": {
       "timeFiltering": "For time-based queries, use DATEADD function: DATEADD(month, -3, GETDATE()) for past 3 months, DATEADD(day, -30, GETDATE()) for past 30 days. Common date fields: CreatedDate, ClosedDate, AuthorDate, CommitterDate.",
       "commonQueries": [
-        "-- Find project by name\nSELECT * FROM CData.Information.Projects WHERE [Name] LIKE '%<project-name>%'",
+        "-- Find project by name (use catalog name from get_catalogs)\nSELECT * FROM <catalog-name>.Information.Projects WHERE [Name] LIKE '%<project-name>%'",
         "-- Find repository in project\nSELECT * FROM [Project_<project-name>].[Project].[Repositories] WHERE [Name] LIKE '%<repository-name>%'",
+        "-- Get agent pools (organization level)\nSELECT [Name], [PoolType], [Size], [IsHosted] FROM <catalog-name>.Information.AgentPools",
+        "-- Get specific agent pool by ID\nSELECT * FROM <catalog-name>.Information.AgentPools WHERE [Id] = 9",
+        "-- Get build definitions for a project\nSELECT [Name], [Path], [CreatedDate], [AuthoredByDisplayName] FROM BuildDefinitions WHERE [ProjectId] = '837ccd31-8159-4db3-b8ce-de0c36d2a0bf'",
+        "-- Get build definitions with full properties\nSELECT [Id], [Name], [RepositoryType], [ProcessYamlFilename] FROM BuildDefinitions WHERE [ProjectId] = '837ccd31-8159-4db3-b8ce-de0c36d2a0bf' AND [IncludeAllProperties] = true",
+        "-- Get group members with user details\nSELECT [UserDisplayName], [UserMailAddress], [AccessLevelStatus], [AccountLicenseType] FROM GroupMembers WHERE [GroupId] = 'group-origin-id'",
+        "-- Get group member access information\nSELECT [UserDisplayName], [DateCreated], [LastAccessedDate], [UserOrigin] FROM GroupMembers WHERE [GroupId] = 'group-origin-id'",
+    "-- Get all projects\nSELECT [Id], [Name], [State], [Visibility], [DefaultTeamName] FROM Projects",
+    "-- Get project by ID\nSELECT * FROM Projects WHERE [Id] = '837ccd31-8159-4db3-b8ce-de0c36d2a0bf'",
+    "-- Insert a new project\nINSERT INTO Projects (Name, description, visibility, CapabilitiesVersionControlType, CapabilitiesProcessTemplateTypeId) VALUES ('cdata','demo project', 'private', 'Git', '6b724908-ef14-45cf-84f8-768b5384da45')",
+    "-- Update a project name\nUPDATE Projects SET name='Cdata' where Id='b154d8f3-bfd9-4bfb-90ae-2e6c8cda8937'",
+    "-- Delete a project\nDELETE FROM Projects WHERE Id = 'b154d8f3-bfd9-4bfb-90ae-2e6c8cda8937'",
+  "-- Get all users\nSELECT [Id], [UserDisplayName], [UserPrincipalName], [UserMailAddress], [AccessLevelAccountLicenseType] FROM Users",
+  "-- Get user by ID\nSELECT * FROM Users WHERE [Id] = 'c774bab2-7c43-65da-8ae4-be3ca4519257'",
+  "-- Insert a new user\nINSERT INTO Users (UserDisplayName, UserPrincipalName, UserOriginID, AccessLevelAccountLicenseType, UserSubjectKind) VALUES ('Anirudh', 'sample@mail.com', '000300003732A094', 'express', 'user')",
+  "-- Delete a user\nDELETE FROM Users WHERE Id = '7342ddfe-abc9-4884-9fbf-773be61e2c92'",
+  "-- Get access control lists for a namespace\nSELECT [NamespaceId], [Token], [AcesDictionary] FROM AccessControlLists WHERE [NamespaceId] = 'security-namespace-id'",
+  "-- Get audit log entries for a time window\nSELECT [Id], [ActionId], [ActorDisplayName], [Timestamp], [Area] FROM AuditLogEntries WHERE [DownloadWindow] > '2020-04-06 05:50:00' AND [DownloadWindow] < '2020-04-06T06:50:00.000+00:00'",
+  "-- Get group memberships for a user\nSELECT [ContainerDescriptor], [MemberDescriptor] FROM GroupMemberships WHERE [MemberDescriptor] = 'user-descriptor'",
+  "-- Get all groups\nSELECT [Descriptor], [DisplayName], [MailAddress] FROM Groups",
+  "-- Get group by descriptor\nSELECT * FROM Groups WHERE [Descriptor] = 'group-descriptor'",
+  "-- Get identities by ID\nSELECT * FROM Identities WHERE [Id] IN ('016a5631-0d32-6644-ab69-b1baf02fdb5c','1356ed53-6784-661a-b5d1-7c080ec0c928')",
+  "-- Get identities by subject descriptor\nSELECT * FROM Identities WHERE [SubjectDescriptor] = 'vssgp.Uy0xKTktMTU1MTM3NDI0RS0zMjA2MTU1Njc2LTE2Njk1MzM1MDUtMzE1NTcwNTg2Mi0yODc4NzY2ODE4LTAtMC0wLTAtMQ'",
+  "-- Get project properties for a project\nSELECT [Name], [Value] FROM ProjectProperties WHERE [ProjectId] = '837ccd31-8159-4db3-b8ce-de0c36d2a0bf'",
+  "-- Get security namespace actions\nSELECT [NamespaceId], [Bit], [DisplayName] FROM SecurityNamespaceActions WHERE [NamespaceId] = 'namespace-id'",
+  "-- Get all security namespaces\nSELECT [Id], [DisplayName], [Name] FROM SecurityNamespaces",
+  "-- Get user memberships for a user\nSELECT [ContainerDescriptor], [MemberDescriptor] FROM UserMemberships WHERE [MemberDescriptor] = 'user-descriptor'",
+  "-- Get all pull requests for a project\nSELECT [Id], [Title], [Status], [CreatedByDisplayName], [CreationDate] FROM PullRequests WHERE [ProjectId] = 'project-id'",
+  "-- Get active pull requests for a repository\nSELECT [Id], [Title], [SourceRefName], [TargetRefName], [Status] FROM PullRequests WHERE [RepositoryId] = 'repo-id' AND [Status] = 'active'",
+  "-- Get pull requests by creator\nSELECT [Id], [Title], [CreationDate] FROM PullRequests WHERE [CreatedById] = 'user-id'",
         "-- Get recent pull requests\nSELECT [CreatedByDisplayName], COUNT(*) as PRCount FROM [Project_<name>].[Repository_<id>].[PullRequests] WHERE [CreatedDate] >= DATEADD(month, -3, GETDATE()) GROUP BY [CreatedByDisplayName]",
         "-- Get commit activity\nSELECT [AuthorName], COUNT(*) as CommitCount FROM [Project_<name>].[Repository_<id>].[Commits] WHERE [AuthorDate] >= DATEADD(month, -1, GETDATE()) GROUP BY [AuthorName]",
         "-- Get work items by assignee\nSELECT [AssignedToDisplayName], [Type], COUNT(*) FROM [Project_<name>].[Analytics].[WorkItems] WHERE [State] = 'Active' GROUP BY [AssignedToDisplayName], [Type]"
       ],
       "bestPractices": [
-        "Always start by identifying the project using CData.Information.Projects",
-        "Use get_tables tool to explore available tables after identifying project and repository",
-        "Use get_columns tool to inspect table structure before writing complex queries",
+        "MANDATORY: Always start by calling get_catalogs tool to discover the available catalog names - NEVER use 'CData' as catalog name in Connect Cloud",
+        "Use the exact catalog name obtained from get_catalogs instead of any hardcoded values",
+        "Always start by identifying the project using <actual-catalog-name>.Information.Projects",
+        "Check tableSpecifications in these instructions for comprehensive table details (PullRequests, AgentPools, BuildDefinitions, GroupMembers, Projects, Users, etc.) before calling get_tables or get_columns",
+        "For tables with detailed specifications provided, use the column information, supported operators, and example queries directly - no need to call additional metadata tools",
+        "Only use get_tables/get_columns tools for tables not covered in tableSpecifications",
         "Apply time filters to avoid performance issues with large datasets",
         "Use LIMIT clause for initial exploration queries",
         "Handle null values in user fields (deleted/inactive users)",
@@ -51,13 +1222,55 @@
       "Deleted/inactive users may appear as null in user fields"
     ],
     "troubleshooting": [
-      "If unknown column names: Always use get_columns to inspect table structure before writing queries",
-      "If date format issues: Try different date column names (CreatedDate vs CreationDate)",
-      "If empty results: Check if time filter is too restrictive or repository/project names are correct",
-      "If permission errors: Some tables might not be accessible depending on Azure DevOps permissions",
-      "If large result sets timeout: Use LIMIT clause to avoid timeouts",
-      "If repository not found: Verify repository name spelling and use LIKE '%partial-name%' for fuzzy matching"
+      "Unknown column names: Always use get_columns to inspect table structure before writing queries",
+      "Date format issues: Try different date column names (CreatedDate vs CreationDate)",
+      "Empty results: Check if time filter is too restrictive or repository/project names are correct",
+      "Permission errors: Some tables might not be accessible depending on Azure DevOps permissions",
+      "Large result sets timeout: Use LIMIT clause to avoid timeouts",
+      "Repository not found: Verify repository name spelling and use LIKE '%partial-name%' for fuzzy matching",
+      "Connection issues: Verify connection parameters and network connectivity",
+      "Syntax errors: Review Azure DevOps-specific SQL dialect requirements"
+    ],
+    "exampleCompleteWorkflow": {
+      "scenario": "10 developers with least pull requests in past 3 months in drivers repository",
+      "steps": [
+        {
+          "step": "Get available catalogs",
+          "action": "Use get_catalogs tool to discover available catalog names"
+        },
+        {
+          "step": "Find project",
+          "query": "SELECT * FROM <catalog-name>.Information.Projects WHERE [Name] LIKE '%app1%'"
+        },
+        {
+          "step": "Find repository (assuming project found)",
+          "query": "SELECT [Id], [Name] FROM [Project_app1].[Project].[Repositories] WHERE [Name] LIKE '%app%'"
+        },
+        {
+          "step": "Build query using provided PullRequests table specification",
+          "note": "The instructions already contain comprehensive PullRequests table details including all columns, data types, supported operators, and example queries. No need to call get_columns."
+        },
+        {
+          "step": "Build final query",
+          "query": "SELECT \n    [CreatedByDisplayName] as Developer,\n    COUNT(*) as PullRequestCount\nFROM [Project_drivers].[Repository_<repo-id>].[PullRequests]\nWHERE [CreatedDate] >= DATEADD(month, -3, GETDATE())\nGROUP BY [CreatedByDisplayName]\nORDER BY COUNT(*) ASC\nLIMIT 10"
+        }
+      ]
+    },
+    "bestPractices": [
+      "MANDATORY: Always start by calling get_catalogs tool to discover the available catalog names - NEVER use 'CData' as catalog name in Connect Cloud",
+      "Use the exact catalog name obtained from get_catalogs instead of any hardcoded values",
+      "Always inspect table schemas before writing complex queries",
+      "Start with simple queries and build complexity gradually",
+      "Use appropriate time filters to avoid performance issues",
+      "Handle null values in user fields (deleted/inactive users)",
+      "Test date ranges to ensure they're working as expected",
+      "Use meaningful aliases in your SELECT statements for better readability",
+      "Always start by identifying the project using <catalog-name>.Information.Projects",
+      "Use get_tables tool to explore available tables after identifying project and repository",
+      "Use get_columns tool to inspect table structure before writing complex queries",
+      "Apply time filters to avoid performance issues with large datasets",
+      "Use LIMIT clause for initial exploration queries"
     ]
   },
-  "lastUpdated": "2025-01-15T10:00:00Z"
+  "lastUpdated": "2025-09-03T10:00:00Z"
 }
