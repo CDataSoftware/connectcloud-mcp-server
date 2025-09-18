@@ -39,7 +39,8 @@
     "inspector:http": "npx @modelcontextprotocol/inspector --config mcp-inspector.json --server connectcloud-http",
     "inspector:cli": "npx @modelcontextprotocol/inspector --cli --config mcp-inspector.json --server connectcloud-stdio",
     "test:inspector": "npm run build && npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/list",
-    "validate:inspector": "node scripts/validate-inspector.js"
+    "validate:inspector": "node scripts/validate-inspector.js",
+    "validate:server": "node scripts/validate-server-json.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.2",
@@ -55,6 +56,8 @@
     "@types/node": "^22.14.1",
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "cross-env": "^7.0.3",
     "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.2",

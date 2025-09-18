@@ -1,0 +1,49 @@
+{
+  "$schema": "https://registry.modelcontextprotocol.io/schemas/server.json",
+  "name": "io.github.cdatasoftware.connectcloud-mcp-server",
+  "description": "MCP Server for CData Connect Cloud API Integration - Query and manage data through SQL, metadata introspection, and stored procedures",
+  "author": "CData Software",
+  "homepage": "https://www.cdata.com/solutions/mcp/",
+  "repository": "https://github.com/cdatasoftware/connectcloud-mcp-server",
+  "license": "MIT",
+  "deployments": {
+    "packages": [
+      {
+        "type": "npm",
+        "name": "@cdatasoftware/connectcloud-mcp-server",
+        "version": "1.0.6",
+        "validation": {
+          "serverName": "connectcloud-mcp-server"
+        }
+      }
+    ]
+  },
+  "config": {
+    "required": {
+      "CDATA_PAT": {
+        "type": "string",
+        "description": "CData Connect Cloud Personal Access Token for authentication"
+      },
+      "CDATA_BASE_URL": {
+        "type": "string",
+        "description": "Base URL for CData Connect Cloud API (default: https://cloud.cdata.com)"
+      },
+      "CDATA_DATASOURCE": {
+        "type": "string",
+        "description": "Name of the CData Connect Cloud datasource to query"
+      }
+    },
+    "optional": {
+      "LOG_LEVEL": {
+        "type": "string",
+        "description": "Logging level (error, warn, info, debug). Default: info"
+      }
+    }
+  },
+  "features": {
+    "tools": true,
+    "prompts": false,
+    "resources": false,
+    "sampling": false
+  }
+}
