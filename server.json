@@ -7,14 +7,18 @@
   "repository": "https://github.com/cdatasoftware/connectcloud-mcp-server",
   "license": "MIT",
   "deployments": {
-    "packages": [
+    "remotes": [
       {
-        "type": "npm",
-        "name": "@cdatasoftware/connectcloud-mcp-server",
-        "version": "1.0.6",
-        "validation": {
-          "serverName": "connectcloud-mcp-server"
-        }
+        "type": "streamable-http",
+        "url": "https://mcp.cloud.cdata.com/mcp/",
+        "headers": [
+          {
+            "name": "Authorization",
+            "description": "Basic authentication with Connect Cloud email and Personal Access Token (format: Basic email:pat)",
+            "is_required": true,
+            "is_secret": true
+          }
+        ]
       }
     ]
   },

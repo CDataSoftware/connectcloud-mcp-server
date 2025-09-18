@@ -22,17 +22,35 @@ function validateServerJson() {
 
     // Validate deployments
     if (serverJson.deployments) {
-      if (!serverJson.deployments.packages || !Array.isArray(serverJson.deployments.packages)) {
-        errors.push('deployments.packages must be an array');
-      } else if (serverJson.deployments.packages.length === 0) {
-        errors.push('deployments.packages must contain at least one package');
-      } else {
+      // Check for either packages or remotes
+      const hasPackages = serverJson.deployments.packages && Array.isArray(serverJson.deployments.packages) && serverJson.deployments.packages.length > 0;
+      const hasRemotes = serverJson.deployments.remotes && Array.isArray(serverJson.deployments.remotes) && serverJson.deployments.remotes.length > 0;
+
+      if (!hasPackages && !hasRemotes) {
+        errors.push('deployments must contain at least one package or remote');
+      }
+
+      // Validate packages if present
+      if (serverJson.deployments.packages) {
         serverJson.deployments.packages.forEach((pkg, index) => {
           if (!pkg.type) errors.push(`Package ${index}: missing type`);
-          if (!pkg.name) errors.push(`Package ${index}: missing name`);
+          if (!pkg.name && !pkg.url) errors.push(`Package ${index}: missing name or url`);
           if (!pkg.version) errors.push(`Package ${index}: missing version`);
           if (pkg.validation && !pkg.validation.serverName) {
             errors.push(`Package ${index}: validation.serverName is required`);
+          }
+        });
+      }
+
+      // Validate remotes if present
+      if (serverJson.deployments.remotes) {
+        serverJson.deployments.remotes.forEach((remote, index) => {
+          if (!remote.type) errors.push(`Remote ${index}: missing type`);
+          if (!remote.url) errors.push(`Remote ${index}: missing url`);
+          if (remote.headers) {
+            remote.headers.forEach((header, hIndex) => {
+              if (!header.name) errors.push(`Remote ${index} header ${hIndex}: missing name`);
+            });
           }
         });
       }
@@ -74,9 +92,17 @@ function validateServerJson() {
     console.log('\n📝 Server Configuration:');
     console.log(`  Name: ${serverJson.name}`);
     console.log(`  Description: ${serverJson.description}`);
-    if (serverJson.deployments.packages[0]) {
-      console.log(`  Version: ${serverJson.deployments.packages[0].version}`);
-      console.log(`  NPM Package: ${serverJson.deployments.packages[0].name}`);
+
+    // Display deployment information
+    if (serverJson.deployments) {
+      if (serverJson.deployments.packages && serverJson.deployments.packages[0]) {
+        console.log(`  Package Version: ${serverJson.deployments.packages[0].version}`);
+        console.log(`  Package: ${serverJson.deployments.packages[0].name || serverJson.deployments.packages[0].url}`);
+      }
+      if (serverJson.deployments.remotes && serverJson.deployments.remotes[0]) {
+        console.log(`  Remote Type: ${serverJson.deployments.remotes[0].type}`);
+        console.log(`  Remote URL: ${serverJson.deployments.remotes[0].url}`);
+      }
     }
     console.log('\n🎯 Features:');
     if (serverJson.features) {
