@@ -1,11 +1,11 @@
 {
   "$schema": "https://registry.modelcontextprotocol.io/schemas/server.json",
-  "name": "io.github.cdatasoftware.connectcloud-mcp-server",
+  "name": "io.github.CDataSoftware.connectcloud-mcp-server",
   "description": "MCP Server for CData Connect AI - Query, manage, and act on data from 300+ enterprise sources",
   "author": "CData Software",
   "homepage": "https://www.cdata.com/solutions/mcp/",
   "repository": {
-    "url": "https://github.com/cdatasoftware/connectcloud-mcp-server"
+    "url": "https://github.com/CDataSoftware/connectcloud-mcp-server"
   },
   "license": "MIT",
   "deployments": {
