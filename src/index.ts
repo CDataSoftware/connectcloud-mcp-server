@@ -6,6 +6,7 @@ import { setupTransport } from './transports';
 
 // Declare a global variable to track the current request ID
 declare global {
+  // eslint-disable-next-line no-var
   var currentRequestId: string | number | null;
 }
 global.currentRequestId = null;

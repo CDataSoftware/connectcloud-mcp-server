@@ -8,6 +8,7 @@ const server = new McpServer({
   version: '1.0.5',
   capabilities: {
     tools: {},
+    prompts: {},
   },
 });
 

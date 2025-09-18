@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(npm run lint)",
+      "Bash(TRANSPORT_TYPE=stdio node dist/index.js --help)",
+      "Bash(tasklist:*)"
+    ],
+    "deny": []
+  }
+}
