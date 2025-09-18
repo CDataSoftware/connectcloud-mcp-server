@@ -1,7 +1,7 @@
 {
   "$schema": "https://registry.modelcontextprotocol.io/schemas/server.json",
   "name": "io.github.cdatasoftware.connectcloud-mcp-server",
-  "description": "MCP Server for CData Connect Cloud API Integration - Query and manage data through SQL, metadata introspection, and stored procedures",
+  "description": "MCP Server for CData Connect AI - Query, manage, and act on data from 300+ enterprise sources",
   "author": "CData Software",
   "homepage": "https://www.cdata.com/solutions/mcp/",
   "repository": {
@@ -16,7 +16,7 @@
         "headers": [
           {
             "name": "Authorization",
-            "description": "Basic authentication with Connect Cloud email and Personal Access Token (format: Basic email:pat)",
+            "description": "Basic auth with Connect Cloud email and PAT (format: Basic email:pat)",
             "is_required": true,
             "is_secret": true
           }
