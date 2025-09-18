@@ -4,7 +4,9 @@
   "description": "MCP Server for CData Connect Cloud API Integration - Query and manage data through SQL, metadata introspection, and stored procedures",
   "author": "CData Software",
   "homepage": "https://www.cdata.com/solutions/mcp/",
-  "repository": "https://github.com/cdatasoftware/connectcloud-mcp-server",
+  "repository": {
+    "url": "https://github.com/cdatasoftware/connectcloud-mcp-server"
+  },
   "license": "MIT",
   "deployments": {
     "remotes": [
