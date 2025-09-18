@@ -1,6 +1,6 @@
 {
   "$schema": "https://registry.modelcontextprotocol.io/schemas/server.json",
-  "name": "io.github.CDataSoftware.connectcloud-mcp-server",
+  "name": "io.github.CDataSoftware/connectcloud-mcp-server",
   "description": "MCP Server for CData Connect AI - Query, manage, and act on data from 300+ enterprise sources",
   "author": "CData Software",
   "homepage": "https://www.cdata.com/solutions/mcp/",
