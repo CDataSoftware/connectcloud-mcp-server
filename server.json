@@ -5,7 +5,8 @@
   "author": "CData Software",
   "homepage": "https://www.cdata.com/solutions/mcp/",
   "repository": {
-    "url": "https://github.com/CDataSoftware/connectcloud-mcp-server"
+    "url": "https://github.com/CDataSoftware/connectcloud-mcp-server",
+    "source": "github"
   },
   "license": "MIT",
   "deployments": {
