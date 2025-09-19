@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/cdatasoftware-connectcloud-mcp-server-badge.png)](https://mseep.ai/app/cdatasoftware-connectcloud-mcp-server)
+
 # 🧠 CData Connect Cloud MCP Server
 
 [![Node.js Version](https://img.shields.io/badge/Node.js-18%2B-blue.svg)](https://nodejs.org/)
