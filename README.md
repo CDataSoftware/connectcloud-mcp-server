@@ -6,6 +6,14 @@
 [![CData Connect AI](https://img.shields.io/badge/CData-Connect%20Cloud-0072C6)](https://www.cdata.com/ai/)
 [![smithery badge](https://smithery.ai/badge/@CDataSoftware/connectcloud-mcp-server)](https://smithery.ai/server/@CDataSoftware/connectcloud-mcp-server)
 
+## 🚨 Now Available in Connect AI 🚨
+
+Connect AI (formerly Connect Cloud) now has a built-in Remote MCP Server (using the Streamable HTTP transport type). [Learn more](https://www.cdata.com/ai/).
+
+This project still allows for local installation/hosting of the MCP server using the STDIO transport type.
+
+---
+
 A **Model Context Protocol (MCP)** server for querying and managing data through [CData Connect AI](https://www.cdata.com/ai/). This server enables AI agents to interact with data using SQL, metadata introspection, and procedure execution.
 
 ---
